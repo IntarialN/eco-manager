@@ -172,6 +172,7 @@
   "active": "981ffaefc36c7a85",
   "lastOpenFiles": [
     "completed/2025-11-07-rbac-scope-update.md",
+    "completed/2025-11-07-requirements-dashboard.md",
     "completed/2025-11-06-auth-and-rbac-bootstrap.md",
     "completed/2025-11-06-documentation-todo-review.md",
     "completed/2025-11-06-knowledge-management-review.md",
@@ -197,7 +198,6 @@
     "completed/2025-11-05-requirement11-confirmed.md",
     "completed/2025-11-05-requirement-overrides.md",
     "completed/2025-11-05-npa-mapping.md",
-    "completed/2025-11-05-notification-channels.md",
     "architecture/diagrams/sequence_document_upload.puml",
     "architecture/diagrams/erd.puml",
     "architecture/diagrams/component.puml",

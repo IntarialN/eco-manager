@@ -8,15 +8,16 @@ use yii\helpers\Html;
 $this->title = $client->name;
 $this->params['breadcrumbs'][] = $this->title;
 
-$requirements = $client->requirements;
+$allRequirements = $allRequirements ?? $client->requirements;
+$displayRequirements = $requirements ?? $allRequirements;
 $documents = $client->documents;
 $events = $client->calendarEvents;
 $risks = $client->risks;
 $contracts = $client->contracts;
 
 $activeRequirements = 0;
-foreach ($requirements as $requirement) {
-    if ($requirement->status !== 'done') {
+foreach ($allRequirements as $requirement) {
+    if (!$requirement->isCompleted()) {
         $activeRequirements++;
     }
 }
@@ -88,7 +89,9 @@ $tabs = [
         'label' => 'Карта требований',
         'content' => $this->render('_tab_requirements', [
             'client' => $client,
-            'requirements' => $requirements,
+            'requirements' => $displayRequirements,
+            'stats' => $requirementsStats ?? [],
+            'statusFilter' => $requirementStatusFilter ?? 'all',
         ]),
         'active' => true,
     ],
