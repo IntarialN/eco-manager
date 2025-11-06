@@ -1,78 +1,54 @@
-# Runbook разработки и деплоя (черновик)
-
-Документ описывает базовые операции для команды: запуск проекта локально, выполнение тестов, взаимодействие с CI/CD и деплой.
+# Runbook разработки и деплоя (Yii2)
 
 ## 1. Предварительные требования
-- Docker Engine 20+, docker-compose v2.
-- Node.js 20 (для фронта/бэкена), npm 9+.
-- Nx CLI (`npm install -g nx@latest`) — опционально.
-- Доступ к репозиторию (ветки `main`, `develop`, `feature/*`).
+- PHP 8.1+
+- Composer 2+
+- SQLite (по умолчанию) или PostgreSQL/MySQL при переходе в продакшн
+- Git, доступ к репозиторию (`main`, `develop`, `feature/*`)
 
 ## 2. Локальный запуск
+1. Перейдите в каталог `yii-app/` и установите зависимости:
+   ```bash
+   cd yii-app
+   composer install
+   ```
+2. Примените миграции (создастся `data/eco_manager.db` с демо-данными):
+   ```bash
+   php yii migrate
+   ```
+3. Запустите встроенный сервер Yii2:
+   ```bash
+   php yii serve --docroot=@app/web --port=8080
+   ```
+4. Откройте [http://localhost:8080](http://localhost:8080) — будет показан личный кабинет клиента с вкладками.
 
-### 2.1 Поднять инфраструктуру
-```bash
-docker compose -f infra/docker/docker-compose.yml up -d
-```
-Поднимает PostgreSQL, Redis, RabbitMQ, MinIO и mock Bubble API.
+## 3. Структура проекта
+- `controllers/ClientController.php` — основной экран личного кабинета.
+- `models/` — ActiveRecord-модели (`Client`, `Requirement`, `Document`, `CalendarEvent`, `Risk`, `Contract`, `Invoice`, `Act`).
+- `migrations/` — схема БД + примерные данные.
+- `views/client/` — вкладки UI (карта требований, артефакты, календарь, риски, биллинг).
+- `web/uploads/` — директория для документов (можно положить реальные файлы).
 
-### 2.2 Настроить переменные окружения
-- Скопировать `.env.example` → `.env` (для каждого сервиса/приложения, TBD).
-- Указать параметры подключения:
-  - `DATABASE_URL=postgresql://eco_user:eco_password@localhost:5432/eco_db`
-  - `REDIS_URL=redis://localhost:6379`
-  - `RABBITMQ_URL=amqp://eco_user:eco_password@localhost:5672`
-  - `MINIO_ENDPOINT=http://localhost:9000`
-  - `BUBBLE_API_URL=http://localhost:4001/api`
+## 4. Git workflow
+1. Ответвляемся от `develop` (`feature/<task>`).
+2. Реализуем задачу, запускаем `php yii migrate` (при необходимости) и `php yii serve` для проверки.
+3. Перед коммитом — `composer validate` (опц.) и убедиться, что миграции откатываются (`php yii migrate/down`).
+4. Создаём PR в `develop`; после ревью — merge → `develop` → `main`.
 
-### 2.3 Запуск сервисов
-Используем Nx или npm:
-```bash
-npm run dev:web-client
-npm run dev:api-gateway
-npm run dev:requirements-service
-# остальные сервисы по необходимости
-```
+## 5. Тестирование и миграции
+- Юнит-тесты пока не настроены (TODO подключить Codeception/PHPUnit).
+- Миграции: `php yii migrate` / `php yii migrate/down 1`.
+- Для seed-данных используется текущая миграция `m230000_000000_init_schema`.
 
-## 3. Тестирование
-- `npm run lint` — линтер.
-- `npm run test` — юнит/интеграционные тесты (Jest/Vitest).
-- `npm run test:e2e` — энд-ту-энд (Playwright/Cypress) — планируется.
-- Перед коммитом рекомендуется запускать `npm run verify` (объединение всех проверок, TBD).
+## 6. Деплой
+- **Dev/stage:** можно использовать встроенный сервер или Docker-контейнер (PHP-FPM + Nginx); обновить `db.php` на PostgreSQL/MySQL.
+- **Prod:**
+  1. Настроить виртуальный хост на `yii-app/web`.
+  2. Сконфигурировать БД, задать переменные окружения (например, через `.env`).
+  3. Выполнить `composer install --no-dev`, `php yii migrate --interactive=0`.
+  4. Настроить регулярные бэкапы БД (pg_dump / mysqldump) и каталога `uploads`.
 
-## 4. Рабочий процесс с Git
-- Создаём ветку `feature/<topic>` от `develop`.
-- Коммиты по Conventional Commits (`docs:`, `feat:`, `fix:`).
-- PR → `develop`, после апрува и успешного CI — merge.
-- После набора функционала — PR `develop` → `main` (релиз).
-
-## 5. CI/CD
-- GitHub Actions (`.github/workflows/ci.yml`):
-  - Линт, тесты, build.
-  - Сборка Docker образов и push в GHCR (по push в `develop`).
-- CD (план): Argo CD отслеживает манифесты в `infra/k8s/`.
-- Для ручного деплоя на dev/stage:
-  ```bash
-  kubectl apply -k infra/k8s/overlays/stage
-  ```
-  (фактические пути будут добавлены после подготовки манифестов).
-
-## 6. Работа с mock Bubble API
-- Исходники предполагаются в `services/mock-bubble/`.
-- Start: `npm run dev` внутри контейнера docker-compose.
-- Seed данным: `npm run seed` (TBD).
-- При появлении реального API — обновить `docs/architecture/mock-bubble-api.md`.
-
-## 7. Бэкапы и мониторинг (локальный контур)
-- Backup/restore в локальном окружении вручную (скрипты TBD).
-- Grafana/Prometheus планируются для stage/prod; локально можно использовать `docker compose -f infra/docker/monitoring-compose.yml` (будет добавлено).
-
-## 8. FAQ (обновлять по мере работы)
-- **Проблемы с подключением к БД**: убедитесь, что контейнер `eco-postgres` работает (`docker ps`), пароль соответствует `.env`.
-- **RabbitMQ порт занят**: остановить локальный экземпляр, перезапустить `docker compose`.
-- **Ошибки npm install**: очистить кеш `npm cache clean --force`, повторить установку.
-
-## 9. TODO
-- Добавить примеры `.env` для каждого сервиса.
-- Описать процедуру миграций БД (Prisma `npx prisma migrate dev`).
-- Подготовить раздел для prod/stage деплоя после выбора облака.
+## 7. Интеграции и TODO
+- Mock Bubble API описан в `docs/architecture/mock-bubble-api.md`; интеграция будет подключена после получения реального API.
+- Требуется внедрить RBAC (`docs/admin/roles-and-permissions.md`) и защиту `web/uploads`.
+- Подготовить CI/CD (GitHub Actions) после согласования с заказчиком.
