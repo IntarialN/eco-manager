@@ -17,7 +17,8 @@ WORKDIR /var/www/html
 
 # Copy composer files first (to leverage layer caching)
 COPY yii-app/composer.json yii-app/composer.lock* ./
-RUN composer install --prefer-dist --no-dev --no-scripts --ignore-platform-reqs
+RUN composer install --prefer-dist --no-dev --no-scripts --ignore-platform-reqs \
+    && composer config --global allow-plugins.yiisoft/yii2-composer true
 
 # Copy rest of application
 COPY yii-app/ /var/www/html
