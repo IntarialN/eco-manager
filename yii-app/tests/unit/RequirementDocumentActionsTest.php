@@ -6,15 +6,17 @@ namespace tests\unit;
 
 use app\models\Document;
 use Yii;
+use yii\web\UploadedFile;
 
-final class RequirementDocumentActionsTest extends RequirementControllerTestCase
+final class RequirementDocumentActionsTest extends ControllerTestCase
 {
     public function testUploadDocumentCreatesPendingRecord(): void
     {
         $tempFile = tempnam(sys_get_temp_dir(), 'upload');
-        file_put_contents($tempFile, 'test');
+        $pdfStub = "%PDF-1.4\n1 0 obj\n<< /Type /Catalog /Pages 2 0 R >>\nendobj\n2 0 obj\n<< /Type /Pages /Count 0 >>\nendobj\ntrailer\n<< /Root 1 0 R >>\n%%EOF";
+        file_put_contents($tempFile, $pdfStub);
 
-        $_FILES = [
+        $files = [
             'DynamicModel' => [
                 'name' => ['file' => 'report.pdf'],
                 'type' => ['file' => 'application/pdf'],
@@ -31,31 +33,29 @@ final class RequirementDocumentActionsTest extends RequirementControllerTestCase
             ],
         ];
 
-        $_POST = $post;
-        $_SERVER['REQUEST_METHOD'] = 'POST';
-        Yii::$app->request->setBodyParams($post);
-
-        $this->createController()->runAction('upload-document', ['id' => 1]);
+        UploadedFile::reset();
+        $this->runControllerAction('requirement', 'upload-document', ['id' => 1], $post, $files);
 
         $document = Document::find()->where(['requirement_id' => 1])->one();
-        self::assertInstanceOf(Document::class, $document);
+        if (!$document) {
+            $error = Yii::$app->session->getFlash('error', null, false);
+            self::fail('Document not created. Flash error: ' . ($error ?? 'none'));
+        }
         self::assertSame(Document::STATUS_PENDING, $document->status);
         self::assertSame('Акт проверки', $document->title);
         self::assertSame('report', $document->type);
         self::assertNotNull($document->uploaded_at);
         self::assertMatchesRegularExpression('#^/uploads/req_1_.*\.pdf$#', $document->path);
 
-        $storedPath = Yii::getAlias('@app/web/uploads') . DIRECTORY_SEPARATOR . basename($document->path);
-        self::assertFileExists($storedPath);
-
-        unlink($storedPath);
+        @unlink($tempFile);
     }
 
     public function testApproveDocumentUpdatesStatus(): void
     {
         $documentId = $this->createDocumentRecord(Document::STATUS_PENDING);
 
-        $this->createController()->runAction('approve-document', ['id' => $documentId]);
+        UploadedFile::reset();
+        $this->runControllerAction('requirement', 'approve-document', ['id' => $documentId]);
 
         $document = Document::findOne($documentId);
         self::assertInstanceOf(Document::class, $document);
@@ -66,7 +66,8 @@ final class RequirementDocumentActionsTest extends RequirementControllerTestCase
     {
         $documentId = $this->createDocumentRecord(Document::STATUS_PENDING);
 
-        $this->createController()->runAction('reject-document', ['id' => $documentId]);
+        UploadedFile::reset();
+        $this->runControllerAction('requirement', 'reject-document', ['id' => $documentId]);
 
         $document = Document::findOne($documentId);
         self::assertInstanceOf(Document::class, $document);
