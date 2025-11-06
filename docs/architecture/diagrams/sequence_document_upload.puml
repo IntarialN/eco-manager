@@ -1,0 +1,38 @@
+@startuml DocumentUpload
+title Document upload and approval flow
+
+skinparam monochrome true
+
+actor ClientUser as Client
+participant "web-client" as Web
+participant "api-gateway" as Gateway
+participant "documents-service" as DocsSvc
+participant "requirements-service" as ReqSvc
+participant "RabbitMQ" as MQ
+participant "notification-service" as Notify
+
+Client -> Web : Select requirement & file
+Web -> Gateway : POST /documents (metadata + file)
+Gateway -> DocsSvc : validate & store metadata
+DocsSvc -> DocsSvc : Save record, upload to storage
+DocsSvc -> MQ : publish document.uploaded
+DocsSvc -> Web : 201 Created (pending_review)
+
+MQ -> ReqSvc : document.uploaded
+ReqSvc -> ReqSvc : Link document to requirement\nupdate status (in_progress)
+ReqSvc -> MQ : publish requirement.updated
+
+actor Manager
+Manager -> admin-console : review document
+admin-console -> Gateway : POST /documents/{id}/approve
+Gateway -> DocsSvc : approve document
+DocsSvc -> MQ : publish document.approved
+
+MQ -> ReqSvc : document.approved
+ReqSvc -> ReqSvc : Update requirement status (completed)
+ReqSvc -> MQ : publish requirement.updated
+MQ -> Notify : requirement.updated
+Notify -> Notify : compose notification
+Notify -> Client : send email/chat message
+
+@enduml

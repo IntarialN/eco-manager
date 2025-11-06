@@ -99,8 +99,13 @@
 ## 8. TODO и открытые вопросы
 
 - Уточнить, какие сервисы объединяем в рамках MVP (например, notifications внутри calendar).
-- Подготовить диаграммы последовательности для ключевых сценариев (регистрация клиента, загрузка документа).
 - Зафиксировать SLA по доступности и латентности для прод-окружения.
+
+## 9. Диаграммы
+
+- Компонентная диаграмма: `docs/architecture/diagrams/component.puml`.
+- ERD (core data model): `docs/architecture/diagrams/erd.puml`.
+- Последовательность (загрузка документа): `docs/architecture/diagrams/sequence_document_upload.puml`.
 
 ## Чек-лист готовности
 

@@ -1,0 +1,68 @@
+@startuml ComponentDiagram
+title MVP Components Overview
+
+skinparam componentStyle rectangle
+skinparam monochrome true
+
+package "Frontend" {
+  [web-client]
+  [admin-console]
+}
+
+package "API Layer" {
+  [api-gateway]
+}
+
+package "Core Services" {
+  [auth-service]
+  [requirements-service]
+  [documents-service]
+  [calendar-service]
+  [risk-service]
+  [billing-service]
+  [notification-service]
+}
+
+package "Infrastructure" {
+  database "PostgreSQL" as PostgreSQL
+  [Redis]
+  [RabbitMQ]
+  node "Object Storage\n(MinIO/YOS)" as Storage
+}
+
+package "External Systems" {
+  [Bubble API]
+  [Email/SMS Providers]
+  [Telegram Bot API]
+}
+
+[web-client] --> [api-gateway]
+[admin-console] --> [api-gateway]
+
+[api-gateway] --> [auth-service]
+[api-gateway] --> [requirements-service]
+[api-gateway] --> [documents-service]
+[api-gateway] --> [calendar-service]
+[api-gateway] --> [risk-service]
+[api-gateway] --> [billing-service]
+
+[requirements-service] --> PostgreSQL
+[requirements-service] --> [RabbitMQ]
+[documents-service] --> PostgreSQL
+[documents-service] --> Storage
+[calendar-service] --> PostgreSQL
+[calendar-service] --> [Redis]
+[calendar-service] --> [RabbitMQ]
+[risk-service] --> PostgreSQL
+[risk-service] --> [RabbitMQ]
+[billing-service] --> PostgreSQL
+[billing-service] --> [RabbitMQ]
+[notification-service] --> [RabbitMQ]
+[notification-service] --> [Email/SMS Providers]
+[notification-service] --> [Telegram Bot API]
+
+[billing-service] --> [Bubble API]
+[auth-service] --> PostgreSQL
+[auth-service] --> [Redis]
+
+@enduml

@@ -1,0 +1,139 @@
+@startuml ERDiagram
+title Core Data Model (simplified)
+
+skinparam monochrome true
+
+entity Client {
+  * id : UUID <<PK>>
+  --
+  name
+  inn
+  ogrn
+  group_name
+  manager_id <<FK>>
+}
+
+entity Site {
+  * id : UUID <<PK>>
+  --
+  client_id <<FK>>
+  name
+  address
+  emission_category
+  category_source_doc
+  hazardous_substances_class
+}
+
+entity User {
+  * id : UUID <<PK>>
+  --
+  email
+  role
+  client_id <<FK?>>
+  status
+}
+
+entity Requirement {
+  * id : UUID <<PK>>
+  --
+  client_id <<FK>>
+  site_id <<FK?>>
+  code
+  status
+  due_date
+  source_rule
+}
+
+entity RequirementHistory {
+  * id : UUID <<PK>>
+  --
+  requirement_id <<FK>>
+  change_type
+  payload
+  created_at
+}
+
+entity Document {
+  * id : UUID <<PK>>
+  --
+  client_id <<FK>>
+  site_id <<FK?>>
+  requirement_id <<FK?>>
+  type_code
+  status
+  storage_path
+}
+
+entity DocumentVersion {
+  * id : UUID <<PK>>
+  --
+  document_id <<FK>>
+  version_number
+  uploaded_at
+  file_hash
+}
+
+entity CalendarEvent {
+  * id : UUID <<PK>>
+  --
+  client_id <<FK>>
+  site_id <<FK?>>
+  requirement_id <<FK?>>
+  event_type
+  due_date
+  status
+}
+
+entity Risk {
+  * id : UUID <<PK>>
+  --
+  client_id <<FK>>
+  site_id <<FK?>>
+  source_type
+  source_id <<FK?>>
+  severity
+  probability
+  status
+}
+
+entity Contract {
+  * id : UUID <<PK>>
+  --
+  client_id <<FK>>
+  number
+  status
+  total_amount
+}
+
+entity Invoice {
+  * id : UUID <<PK>>
+  --
+  contract_id <<FK>>
+  number
+  status
+  amount
+}
+
+Client ||--o{ Site
+Client ||--o{ User
+Client ||--o{ Requirement
+Client ||--o{ Document
+Client ||--o{ CalendarEvent
+Client ||--o{ Risk
+Client ||--o{ Contract
+
+Site ||--o{ Requirement
+Site ||--o{ Document
+Site ||--o{ CalendarEvent
+Site ||--o{ Risk
+
+Requirement ||--o{ RequirementHistory
+Requirement ||--o{ Document
+Requirement ||--o{ CalendarEvent
+Requirement ||--o{ Risk
+
+Document ||--o{ DocumentVersion
+
+Contract ||--o{ Invoice
+
+@enduml
