@@ -9,10 +9,10 @@ up:
 	$(docker) up -d
 
 install:
-	$(docker) run --rm -v $(PWD)/yii-app:/var/www/html -w /var/www/html php:8.2-cli bash -c "composer install"
+	$(docker) run --rm yii-app composer install
 
 migrate:
-	$(docker) run --rm -v $(PWD)/yii-app:/var/www/html -w /var/www/html php:8.2-cli php yii migrate --interactive=0
+	$(docker) run --rm yii-app php yii migrate --interactive=0
 
 serve:
 	$(docker) up yii-app

@@ -21,6 +21,8 @@ AppAsset::register($this);
 <body>
 <?php $this->beginBody() ?>
 
+<?php $isLoginPage = Yii::$app->controller->id === 'site' && Yii::$app->controller->action->id === 'login'; ?>
+
 <div class="wrap">
     <?php
     NavBar::begin([
@@ -30,24 +32,47 @@ AppAsset::register($this);
             'class' => 'navbar navbar-expand-lg navbar-dark bg-dark',
         ],
     ]);
+    $identity = Yii::$app->user->identity;
+    $defaultClientId = ($identity instanceof \app\models\User && $identity->getDefaultClientId() !== null)
+        ? (int)$identity->getDefaultClientId()
+        : 1;
+    $menuItems = [];
+    if (!Yii::$app->user->isGuest) {
+        $menuItems[] = ['label' => 'Клиент', 'url' => ['/client/view', 'id' => $defaultClientId]];
+        $menuItems[] = '<li class="nav-item ms-lg-3">' .
+            Html::tag('span', Html::encode($identity->username) . ' · ' . Html::encode($identity->getRoleLabel()), [
+                'class' => 'navbar-text text-white-50',
+            ]) .
+            '</li>';
+        $menuItems[] = '<li class="nav-item">' .
+            Html::beginForm(['/site/logout'], 'post', ['class' => 'd-inline']) .
+            Html::submitButton('Выход', ['class' => 'btn btn-sm btn-outline-light ms-lg-3']) .
+            Html::endForm() .
+            '</li>';
+    } else {
+        $menuItems[] = ['label' => 'Войти', 'url' => ['/site/login']];
+    }
     echo Nav::widget([
-        'options' => ['class' => 'navbar-nav ms-auto'],
-        'items' => [
-            ['label' => 'Клиент', 'url' => ['/client/view', 'id' => 1]],
-        ],
+        'options' => ['class' => 'navbar-nav ms-auto align-items-center gap-2'],
+        'items' => $menuItems,
+        'encodeLabels' => false,
     ]);
     NavBar::end();
     ?>
 
-    <div class="container mt-4">
-        <?= Breadcrumbs::widget([
-            'links' => $this->params['breadcrumbs'] ?? [],
-        ]) ?>
-        <?= $content ?>
-    </div>
+    <main class="main-content<?= $isLoginPage ? ' main-content--centered' : '' ?>">
+        <div class="container<?= $isLoginPage ? ' login-container' : ' mt-4' ?>">
+            <?php if (!$isLoginPage): ?>
+                <?= Breadcrumbs::widget([
+                    'links' => $this->params['breadcrumbs'] ?? [],
+                ]) ?>
+            <?php endif; ?>
+            <?= $content ?>
+        </div>
+    </main>
 </div>
 
-<footer class="footer mt-auto py-3 bg-light">
+<footer class="footer py-3 bg-light">
     <div class="container">
         <p class="text-muted mb-0">&copy; Eco Manager <?= date('Y') ?></p>
     </div>
