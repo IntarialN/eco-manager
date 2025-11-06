@@ -59,6 +59,12 @@
           "buildTarget": "documents-service:build:production"
         }
       }
+    },
+    "lint": {
+      "executor": "@nx/eslint:lint",
+      "options": {
+        "lintFilePatterns": ["services/documents-service/src/**/*.ts"]
+      }
     }
   },
   "tags": []

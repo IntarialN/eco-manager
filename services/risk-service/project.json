@@ -59,6 +59,12 @@
           "buildTarget": "risk-service:build:production"
         }
       }
+    },
+    "lint": {
+      "executor": "@nx/eslint:lint",
+      "options": {
+        "lintFilePatterns": ["services/risk-service/src/**/*.ts"]
+      }
     }
   },
   "tags": []

@@ -59,6 +59,12 @@
           "buildTarget": "requirements-service:build:production"
         }
       }
+    },
+    "lint": {
+      "executor": "@nx/eslint:lint",
+      "options": {
+        "lintFilePatterns": ["services/requirements-service/src/**/*.ts"]
+      }
     }
   },
   "tags": ["scope:services", "type:api"]

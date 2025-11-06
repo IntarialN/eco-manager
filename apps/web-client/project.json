@@ -3,7 +3,33 @@
   "$schema": "../../node_modules/nx/schemas/project-schema.json",
   "sourceRoot": "apps/web-client/src",
   "projectType": "application",
-  "tags": [],
-  "// targets": "to see all targets run: nx show project web-client --web",
-  "targets": {}
+  "tags": ["scope:ui", "type:app"],
+  "targets": {
+    "serve": {
+      "executor": "@nx/vite:dev-server",
+      "options": {
+        "configFile": "apps/web-client/vite.config.ts"
+      }
+    },
+    "build": {
+      "executor": "@nx/vite:build",
+      "outputs": ["{projectRoot}/dist"],
+      "options": {
+        "configFile": "apps/web-client/vite.config.ts"
+      }
+    },
+    "test": {
+      "executor": "@nx/vite:test",
+      "options": {
+        "passWithNoTests": true,
+        "vitestConfig": "apps/web-client/vite.config.ts"
+      }
+    },
+    "lint": {
+      "executor": "@nx/eslint:lint",
+      "options": {
+        "lintFilePatterns": ["apps/web-client/src/**/*.{ts,tsx,js,jsx}"]
+      }
+    }
+  }
 }

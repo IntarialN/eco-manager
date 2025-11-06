@@ -59,6 +59,12 @@
           "buildTarget": "calendar-service:build:production"
         }
       }
+    },
+    "lint": {
+      "executor": "@nx/eslint:lint",
+      "options": {
+        "lintFilePatterns": ["services/calendar-service/src/**/*.ts"]
+      }
     }
   },
   "tags": []

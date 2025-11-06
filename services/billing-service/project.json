@@ -59,6 +59,12 @@
           "buildTarget": "billing-service:build:production"
         }
       }
+    },
+    "lint": {
+      "executor": "@nx/eslint:lint",
+      "options": {
+        "lintFilePatterns": ["services/billing-service/src/**/*.ts"]
+      }
     }
   },
   "tags": []
