@@ -158,6 +158,15 @@ class User extends ActiveRecord implements IdentityInterface
         return $assigned[0] ?? null;
     }
 
+    public function canManageRequirements(): bool
+    {
+        return in_array($this->role, [
+            self::ROLE_ADMIN,
+            self::ROLE_CLIENT_MANAGER,
+            self::ROLE_PROJECT_SPECIALIST,
+        ], true);
+    }
+
     public function getRoleLabel(): string
     {
         return self::roleLabels()[$this->role] ?? $this->role;

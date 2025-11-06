@@ -7,7 +7,8 @@ RUN apt-get update && apt-get install -y \
     libpq-dev \
     libzip-dev \
     libonig-dev \
-    && docker-php-ext-install pdo pdo_pgsql zip mbstring \
+    libicu-dev \
+    && docker-php-ext-install pdo pdo_pgsql zip mbstring intl \
     && rm -rf /var/lib/apt/lists/*
 
 # Install Composer

@@ -1,6 +1,7 @@
 <?php
 
 use app\models\Requirement;
+use app\models\RequirementHistory;
 use yii\helpers\Html;
 use yii\helpers\Url;
 
@@ -63,12 +64,13 @@ $statusFilter = $statusFilter ?? 'all';
                 <th>Срок</th>
                 <th>Площадка</th>
                 <th>Документы</th>
+                <th class="text-end">Действия</th>
             </tr>
         </thead>
         <tbody>
             <?php if (empty($requirements)): ?>
                 <tr>
-                    <td colspan="6" class="text-center text-muted py-4">Нет требований для отображения.</td>
+                    <td colspan="7" class="text-center text-muted py-4">Нет требований для отображения.</td>
                 </tr>
             <?php endif; ?>
             <?php foreach ($requirements as $item): ?>
@@ -77,13 +79,27 @@ $statusFilter = $statusFilter ?? 'all';
                     <td>
                         <div class="fw-semibold"><?= Html::encode($item->title) ?></div>
                         <?php if ($item->category): ?>
-                            <div class="text-muted small"><?= Html::encode($item->category) ?></div>
+                            <div class="text-muted small"><?= Html::encode($item->getCategoryLabel()) ?></div>
                         <?php endif; ?>
                     </td>
                     <td>
                         <span class="<?= Html::encode($item->getStatusCss()) ?> badge-status">
                             <?= Html::encode($item->getStatusLabel()) ?>
                         </span>
+                        <?php if ($client->risks): ?>
+                            <?php
+                            $linkedRisk = null;
+                            foreach ($client->risks as $risk) {
+                                if ((int)$risk->requirement_id === (int)$item->id) {
+                                    $linkedRisk = $risk;
+                                    break;
+                                }
+                            }
+                            ?>
+                            <?php if ($linkedRisk && $linkedRisk->status !== 'closed'): ?>
+                                <span class="badge bg-danger-subtle text-danger ms-2">Есть риск</span>
+                            <?php endif; ?>
+                        <?php endif; ?>
                     </td>
                     <td>
                         <?php if ($item->due_date): ?>
@@ -96,7 +112,34 @@ $statusFilter = $statusFilter ?? 'all';
                     </td>
                     <td><?= $item->site ? Html::encode($item->site->name) : '—' ?></td>
                     <td><?= count($item->documents) ?></td>
+                    <td class="text-end">
+                        <?= Html::a('Перейти', ['requirement/view', 'id' => $item->id], ['class' => 'btn btn-outline-secondary btn-sm']) ?>
+                    </td>
                 </tr>
+                <?php if ($item->history): ?>
+                    <tr>
+                        <td colspan="7" class="border-0 p-0">
+                            <div class="collapse border-top bg-light" id="history-<?= $item->id ?>">
+                                <div class="p-3 small text-muted">
+                                    <?php foreach ($item->history as $history): ?>
+                                        <div class="mb-2">
+                                            <strong><?= Yii::$app->formatter->asDatetime($history->created_at, 'php:d.m.Y H:i') ?></strong> —
+                                            <?= Html::encode(Requirement::statusLabels()[$history->old_status] ?? $history->old_status ?? '—') ?>
+                                            →
+                                            <?= Html::encode(Requirement::statusLabels()[$history->new_status] ?? $history->new_status) ?>
+                                            <?php if ($history->user): ?>
+                                                (<?= Html::encode($history->user->username) ?>)
+                                            <?php endif; ?>
+                                            <?php if ($history->comment): ?>
+                                                <div class="text-muted fst-italic">Комментарий: <?= Html::encode($history->comment) ?></div>
+                                            <?php endif; ?>
+                                        </div>
+                                    <?php endforeach; ?>
+                                </div>
+                            </div>
+                        </td>
+                    </tr>
+                <?php endif; ?>
             <?php endforeach; ?>
         </tbody>
     </table>

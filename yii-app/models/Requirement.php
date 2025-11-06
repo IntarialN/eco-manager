@@ -43,6 +43,12 @@ class Requirement extends ActiveRecord
         return $this->hasMany(Document::class, ['requirement_id' => 'id']);
     }
 
+    public function getHistory()
+    {
+        return $this->hasMany(RequirementHistory::class, ['requirement_id' => 'id'])
+            ->orderBy(['created_at' => SORT_DESC]);
+    }
+
     public static function statusLabels(): array
     {
         return [
@@ -51,6 +57,26 @@ class Requirement extends ActiveRecord
             self::STATUS_DONE => 'Выполнено',
             self::STATUS_BLOCKED => 'Заблокировано',
         ];
+    }
+
+    public static function categoryLabels(): array
+    {
+        return [
+            'air' => 'Воздух',
+            'water' => 'Водные ресурсы',
+            'waste' => 'Отходы',
+            'training' => 'Обучение',
+            'payments' => 'Платежи',
+        ];
+    }
+
+    public function getCategoryLabel(): string
+    {
+        if (!$this->category) {
+            return '';
+        }
+
+        return self::categoryLabels()[$this->category] ?? $this->category;
     }
 
     public function getStatusLabel(): string
