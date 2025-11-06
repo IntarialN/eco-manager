@@ -1,0 +1,35 @@
+services:
+  yii-app:
+    build:
+      context: .
+      dockerfile: docker/php/Dockerfile
+    ports:
+      - "8080:8080"
+      - "9000:9000"
+    volumes:
+      - ./yii-app:/var/www/html
+    environment:
+      - YII_ENV=dev
+      - YII_DEBUG=1
+    depends_on:
+      - db
+
+  db:
+    image: postgres:15-alpine
+    environment:
+      POSTGRES_DB: eco_manager
+      POSTGRES_USER: eco_user
+      POSTGRES_PASSWORD: eco_password
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  adminer:
+    image: adminer
+    restart: always
+    ports:
+      - "8081:8080"
+
+volumes:
+  postgres_data:
