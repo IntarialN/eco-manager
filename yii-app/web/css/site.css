@@ -48,6 +48,35 @@ body {
     border-radius: 12px;
 }
 
+.assignment-list {
+    display: grid;
+    gap: 0.75rem;
+}
+
+.assignment-list__item {
+    display: flex;
+    align-items: flex-start;
+    gap: 1rem;
+    padding: 0.9rem 1.1rem;
+    border: 1px solid rgba(148, 163, 184, 0.25);
+    border-radius: 16px;
+    background: rgba(255, 255, 255, 0.95);
+    cursor: pointer;
+    transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+}
+
+.assignment-list__item:hover {
+    border-color: rgba(37, 99, 235, 0.4);
+    box-shadow: 0 16px 30px rgba(37, 99, 235, 0.12);
+    transform: translateY(-2px);
+}
+
+.assignment-list__item .form-check-input {
+    margin-top: 0.35rem;
+    width: 1.1rem;
+    height: 1.1rem;
+}
+
 .wrap > .container {
     flex: 1 0 auto;
 }
