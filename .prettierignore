@@ -1,0 +1,6 @@
+node_modules
+nx-report
+coverage
+.dist*
+dist
+.tmp

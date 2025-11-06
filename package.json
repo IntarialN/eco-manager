@@ -1,0 +1,99 @@
+{
+  "name": "eco-manager",
+  "version": "1.0.0",
+  "main": "index.js",
+  "directories": {
+    "doc": "docs"
+  },
+  "scripts": {
+    "prepare": "husky",
+    "nx": "nx",
+    "lint": "nx run-many --target=lint --all --parallel",
+    "test": "nx run-many --target=test --all --parallel",
+    "build": "nx run-many --target=build --all --parallel",
+    "format": "prettier --write \"{apps,services,libs}/**/*.{ts,tsx,js,jsx,json,md}\" \"prisma/**/*.prisma\"",
+    "format:check": "prettier --check \"{apps,services,libs}/**/*.{ts,tsx,js,jsx,json,md}\" \"prisma/**/*.prisma\"",
+    "prisma:generate": "prisma generate",
+    "prisma:format": "prisma format",
+    "prisma:migrate:dev": "prisma migrate dev"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/IntarialN/eco-manager.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/IntarialN/eco-manager/issues"
+  },
+  "homepage": "https://github.com/IntarialN/eco-manager#readme",
+  "description": "",
+  "devDependencies": {
+    "@nestjs/schematics": "^11.0.0",
+    "@nestjs/testing": "^11.0.0",
+    "@nx/devkit": "22.0.2",
+    "@nx/eslint": "22.0.2",
+    "@nx/js": "22.0.2",
+    "@nx/nest": "^22.0.2",
+    "@nx/node": "^22.0.2",
+    "@nx/playwright": "22.0.2",
+    "@nx/react": "^22.0.2",
+    "@nx/vite": "^22.0.2",
+    "@nx/web": "22.0.2",
+    "@nx/webpack": "22.0.2",
+    "@playwright/test": "^1.36.0",
+    "@swc-node/register": "~1.9.1",
+    "@swc/core": "~1.5.7",
+    "@swc/helpers": "~0.5.11",
+    "@types/node": "^24.10.0",
+    "@types/react": "^18.3.26",
+    "@types/react-dom": "^18.3.7",
+    "@typescript-eslint/eslint-plugin": "^6.21.0",
+    "@typescript-eslint/parser": "^6.21.0",
+    "@vitejs/plugin-react": "^4.7.0",
+    "@vitest/ui": "^3.0.0",
+    "eslint": "^8.57.1",
+    "husky": "^9.1.7",
+    "jiti": "2.4.2",
+    "jsdom": "~22.1.0",
+    "lint-staged": "^16.2.6",
+    "nx": "22.0.2",
+    "prettier": "^3.6.2",
+    "prettier-plugin-prisma": "^5.0.0",
+    "prisma": "^6.19.0",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.9.3",
+    "vite": "^7.0.0",
+    "vitest": "^3.0.0",
+    "webpack-cli": "^5.1.4"
+  },
+  "lint-staged": {
+    "*.{ts,tsx,js,jsx,json,md}": [
+      "prettier --write"
+    ],
+    "prisma/**/*.prisma": [
+      "prettier --write"
+    ]
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "nx": {},
+  "dependencies": {
+    "@nestjs/common": "^11.0.0",
+    "@nestjs/config": "^4.0.2",
+    "@nestjs/core": "^11.0.0",
+    "@nestjs/platform-express": "^11.0.0",
+    "@prisma/client": "^5.22.0",
+    "axios": "^1.6.0",
+    "class-transformer": "^0.5.1",
+    "class-validator": "^0.14.2",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "react-router-dom": "6.29.0",
+    "reflect-metadata": "^0.2.2",
+    "rxjs": "^7.8.2",
+    "tslib": "^2.3.0"
+  }
+}

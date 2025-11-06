@@ -1,0 +1,13 @@
+/node_modules/
+/dist/
+/coverage/
+/tmp/
+/.nx
+.env
+.env.*
+vite.config.*.timestamp*
+vitest.config.*.timestamp*
+/.idea/
+/apps/**/dist/
+/services/**/dist/
+/libs/**/dist/

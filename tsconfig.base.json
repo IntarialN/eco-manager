@@ -1,0 +1,18 @@
+{
+  "compilerOptions": {
+    "target": "ES2021",
+    "module": "ESNext",
+    "moduleResolution": "Node",
+    "strict": true,
+    "esModuleInterop": true,
+    "forceConsistentCasingInFileNames": true,
+    "skipLibCheck": true,
+    "baseUrl": ".",
+    "paths": {
+      "@eco/ui-kit/*": ["libs/ui-kit/src/*"],
+      "@eco/data-models/*": ["libs/data-models/src/*"],
+      "@eco/utils/*": ["libs/utils/src/*"]
+    }
+  },
+  "exclude": ["node_modules", "tmp"]
+}
