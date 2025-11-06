@@ -15,18 +15,13 @@ COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
 
 WORKDIR /var/www/html
 
-# Install Yii tool
-RUN composer global require "fxp/composer-asset-plugin:^1.4.4"
-
-ENV PATH="/root/.composer/vendor/bin:${PATH}"
-
-# Copy application code first (for caching composer deps)
+# Copy composer files first (to leverage layer caching)
 COPY yii-app/composer.json yii-app/composer.lock* ./
-RUN composer install --no-scripts --no-autoloader || true
+RUN composer install --prefer-dist --no-dev --no-scripts --ignore-platform-reqs
 
 # Copy rest of application
 COPY yii-app/ /var/www/html
 
-RUN composer install --prefer-dist --no-dev --optimize-autoloader
+RUN composer install --prefer-dist --no-dev --optimize-autoloader --ignore-platform-reqs
 
 CMD ["php", "yii", "serve", "--docroot=@app/web", "--port=8080"]

@@ -2,6 +2,12 @@
   "name": "eco-manager/yii-app",
   "description": "Eco Manager client portal prototype on Yii2",
   "type": "project",
+  "repositories": [
+    {
+      "type": "composer",
+      "url": "https://asset-packagist.org"
+    }
+  ],
   "require": {
     "php": "^8.1",
     "yiisoft/yii2": "~2.0.49",
