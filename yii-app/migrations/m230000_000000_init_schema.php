@@ -5,6 +5,8 @@ class m230000_000000_init_schema extends Migration
 {
     public function safeUp()
     {
+        $supportsForeignKeys = $this->db->driverName !== 'sqlite';
+
         $this->createTable('{{%client}}', [
             'id' => $this->primaryKey(),
             'name' => $this->string()->notNull(),
@@ -22,7 +24,9 @@ class m230000_000000_init_schema extends Migration
             'address' => $this->text(),
             'emission_category' => $this->string(10),
         ]);
-        $this->addForeignKey('fk_site_client', '{{%site}}', 'client_id', '{{%client}}', 'id', 'CASCADE', 'CASCADE');
+        if ($supportsForeignKeys) {
+            $this->addForeignKey('fk_site_client', '{{%site}}', 'client_id', '{{%client}}', 'id', 'CASCADE', 'CASCADE');
+        }
 
         $this->createTable('{{%requirement}}', [
             'id' => $this->primaryKey(),
@@ -35,8 +39,10 @@ class m230000_000000_init_schema extends Migration
             'due_date' => $this->date(),
             'completed_at' => $this->date(),
         ]);
-        $this->addForeignKey('fk_requirement_client', '{{%requirement}}', 'client_id', '{{%client}}', 'id', 'CASCADE', 'CASCADE');
-        $this->addForeignKey('fk_requirement_site', '{{%requirement}}', 'site_id', '{{%site}}', 'id', 'SET NULL', 'CASCADE');
+        if ($supportsForeignKeys) {
+            $this->addForeignKey('fk_requirement_client', '{{%requirement}}', 'client_id', '{{%client}}', 'id', 'CASCADE', 'CASCADE');
+            $this->addForeignKey('fk_requirement_site', '{{%requirement}}', 'site_id', '{{%site}}', 'id', 'SET NULL', 'CASCADE');
+        }
 
         $this->createTable('{{%document}}', [
             'id' => $this->primaryKey(),
@@ -48,8 +54,10 @@ class m230000_000000_init_schema extends Migration
             'path' => $this->text(),
             'uploaded_at' => $this->dateTime(),
         ]);
-        $this->addForeignKey('fk_document_client', '{{%document}}', 'client_id', '{{%client}}', 'id', 'CASCADE', 'CASCADE');
-        $this->addForeignKey('fk_document_requirement', '{{%document}}', 'requirement_id', '{{%requirement}}', 'id', 'SET NULL', 'CASCADE');
+        if ($supportsForeignKeys) {
+            $this->addForeignKey('fk_document_client', '{{%document}}', 'client_id', '{{%client}}', 'id', 'CASCADE', 'CASCADE');
+            $this->addForeignKey('fk_document_requirement', '{{%document}}', 'requirement_id', '{{%requirement}}', 'id', 'SET NULL', 'CASCADE');
+        }
 
         $this->createTable('{{%calendar_event}}', [
             'id' => $this->primaryKey(),
@@ -62,8 +70,10 @@ class m230000_000000_init_schema extends Migration
             'completed_at' => $this->date(),
             'created_at' => $this->dateTime(),
         ]);
-        $this->addForeignKey('fk_event_client', '{{%calendar_event}}', 'client_id', '{{%client}}', 'id', 'CASCADE', 'CASCADE');
-        $this->addForeignKey('fk_event_requirement', '{{%calendar_event}}', 'requirement_id', '{{%requirement}}', 'id', 'SET NULL', 'CASCADE');
+        if ($supportsForeignKeys) {
+            $this->addForeignKey('fk_event_client', '{{%calendar_event}}', 'client_id', '{{%client}}', 'id', 'CASCADE', 'CASCADE');
+            $this->addForeignKey('fk_event_requirement', '{{%calendar_event}}', 'requirement_id', '{{%requirement}}', 'id', 'SET NULL', 'CASCADE');
+        }
 
         $this->createTable('{{%risk}}', [
             'id' => $this->primaryKey(),
@@ -78,8 +88,10 @@ class m230000_000000_init_schema extends Migration
             'detected_at' => $this->date(),
             'resolved_at' => $this->date(),
         ]);
-        $this->addForeignKey('fk_risk_client', '{{%risk}}', 'client_id', '{{%client}}', 'id', 'CASCADE', 'CASCADE');
-        $this->addForeignKey('fk_risk_requirement', '{{%risk}}', 'requirement_id', '{{%requirement}}', 'id', 'SET NULL', 'CASCADE');
+        if ($supportsForeignKeys) {
+            $this->addForeignKey('fk_risk_client', '{{%risk}}', 'client_id', '{{%client}}', 'id', 'CASCADE', 'CASCADE');
+            $this->addForeignKey('fk_risk_requirement', '{{%risk}}', 'requirement_id', '{{%requirement}}', 'id', 'SET NULL', 'CASCADE');
+        }
 
         $this->createTable('{{%contract}}', [
             'id' => $this->primaryKey(),
@@ -91,7 +103,9 @@ class m230000_000000_init_schema extends Migration
             'signed_at' => $this->date(),
             'valid_until' => $this->date(),
         ]);
-        $this->addForeignKey('fk_contract_client', '{{%contract}}', 'client_id', '{{%client}}', 'id', 'CASCADE', 'CASCADE');
+        if ($supportsForeignKeys) {
+            $this->addForeignKey('fk_contract_client', '{{%contract}}', 'client_id', '{{%client}}', 'id', 'CASCADE', 'CASCADE');
+        }
 
         $this->createTable('{{%invoice}}', [
             'id' => $this->primaryKey(),
@@ -102,7 +116,9 @@ class m230000_000000_init_schema extends Migration
             'issued_at' => $this->date(),
             'paid_at' => $this->date(),
         ]);
-        $this->addForeignKey('fk_invoice_contract', '{{%invoice}}', 'contract_id', '{{%contract}}', 'id', 'CASCADE', 'CASCADE');
+        if ($supportsForeignKeys) {
+            $this->addForeignKey('fk_invoice_contract', '{{%invoice}}', 'contract_id', '{{%contract}}', 'id', 'CASCADE', 'CASCADE');
+        }
 
         $this->createTable('{{%act}}', [
             'id' => $this->primaryKey(),
@@ -111,7 +127,9 @@ class m230000_000000_init_schema extends Migration
             'status' => $this->string(50)->notNull(),
             'issued_at' => $this->date(),
         ]);
-        $this->addForeignKey('fk_act_contract', '{{%act}}', 'contract_id', '{{%contract}}', 'id', 'CASCADE', 'CASCADE');
+        if ($supportsForeignKeys) {
+            $this->addForeignKey('fk_act_contract', '{{%act}}', 'contract_id', '{{%contract}}', 'id', 'CASCADE', 'CASCADE');
+        }
 
         // Seed example data
         $now = time();
@@ -168,6 +186,23 @@ class m230000_000000_init_schema extends Migration
 
     public function safeDown()
     {
+        $supportsForeignKeys = $this->db->driverName !== 'sqlite';
+
+        if ($supportsForeignKeys) {
+            $this->dropForeignKey('fk_act_contract', '{{%act}}');
+            $this->dropForeignKey('fk_invoice_contract', '{{%invoice}}');
+            $this->dropForeignKey('fk_contract_client', '{{%contract}}');
+            $this->dropForeignKey('fk_risk_requirement', '{{%risk}}');
+            $this->dropForeignKey('fk_risk_client', '{{%risk}}');
+            $this->dropForeignKey('fk_event_requirement', '{{%calendar_event}}');
+            $this->dropForeignKey('fk_event_client', '{{%calendar_event}}');
+            $this->dropForeignKey('fk_document_requirement', '{{%document}}');
+            $this->dropForeignKey('fk_document_client', '{{%document}}');
+            $this->dropForeignKey('fk_requirement_site', '{{%requirement}}');
+            $this->dropForeignKey('fk_requirement_client', '{{%requirement}}');
+            $this->dropForeignKey('fk_site_client', '{{%site}}');
+        }
+
         $this->dropTable('{{%act}}');
         $this->dropTable('{{%invoice}}');
         $this->dropTable('{{%contract}}');

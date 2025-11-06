@@ -21,9 +21,10 @@ return [
             'class' => yii\caching\FileCache::class,
         ],
         'user' => [
-            'identityClass' => null,
-            'enableAutoLogin' => false,
+            'identityClass' => app\models\User::class,
+            'enableAutoLogin' => true,
             'enableSession' => true,
+            'loginUrl' => ['site/login'],
         ],
         'errorHandler' => [
             'errorAction' => 'site/error',
@@ -52,6 +53,8 @@ return [
         ],
         'assetManager' => [
             'appendTimestamp' => true,
+            'basePath' => '@app/web/assets',
+            'baseUrl' => '@web/assets',
         ],
     ],
     'modules' => [],

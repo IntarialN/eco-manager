@@ -17,12 +17,12 @@ WORKDIR /var/www/html
 
 # Copy composer files first (to leverage layer caching)
 COPY yii-app/composer.json yii-app/composer.lock* ./
-RUN composer install --prefer-dist --no-dev --no-scripts --ignore-platform-reqs \
-    && composer config --global allow-plugins.yiisoft/yii2-composer true
+RUN composer config --global allow-plugins.yiisoft/yii2-composer true \
+    && composer install --prefer-dist --no-dev --no-scripts --ignore-platform-reqs
 
 # Copy rest of application
 COPY yii-app/ /var/www/html
 
 RUN composer install --prefer-dist --no-dev --optimize-autoloader --ignore-platform-reqs
 
-CMD ["php", "yii", "serve", "--docroot=@app/web", "--port=8080"]
+CMD ["php", "yii", "serve", "0.0.0.0", "--docroot=@app/web", "--port=8080"]
