@@ -1,0 +1,12 @@
+body {
+    background-color: #f5f7fa;
+}
+
+.card {
+    margin-bottom: 1.5rem;
+}
+
+.badge-status {
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+}
