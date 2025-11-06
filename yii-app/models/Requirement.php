@@ -5,6 +5,11 @@ use yii\db\ActiveRecord;
 
 class Requirement extends ActiveRecord
 {
+    public const STATUS_NEW = 'new';
+    public const STATUS_IN_PROGRESS = 'in_progress';
+    public const STATUS_DONE = 'done';
+    public const STATUS_BLOCKED = 'blocked';
+
     public static function tableName(): string
     {
         return '{{%requirement}}';
@@ -36,5 +41,70 @@ class Requirement extends ActiveRecord
     public function getDocuments()
     {
         return $this->hasMany(Document::class, ['requirement_id' => 'id']);
+    }
+
+    public function getHistory()
+    {
+        return $this->hasMany(RequirementHistory::class, ['requirement_id' => 'id'])
+            ->orderBy(['created_at' => SORT_DESC]);
+    }
+
+    public static function statusLabels(): array
+    {
+        return [
+            self::STATUS_NEW => 'Новое',
+            self::STATUS_IN_PROGRESS => 'В работе',
+            self::STATUS_DONE => 'Выполнено',
+            self::STATUS_BLOCKED => 'Заблокировано',
+        ];
+    }
+
+    public static function categoryLabels(): array
+    {
+        return [
+            'air' => 'Воздух',
+            'water' => 'Водные ресурсы',
+            'waste' => 'Отходы',
+            'training' => 'Обучение',
+            'payments' => 'Платежи',
+        ];
+    }
+
+    public function getCategoryLabel(): string
+    {
+        if (!$this->category) {
+            return '';
+        }
+
+        return self::categoryLabels()[$this->category] ?? $this->category;
+    }
+
+    public function getStatusLabel(): string
+    {
+        return self::statusLabels()[$this->status] ?? ucfirst($this->status);
+    }
+
+    public function getStatusCss(): string
+    {
+        return match ($this->status) {
+            self::STATUS_DONE => 'badge bg-success',
+            self::STATUS_IN_PROGRESS => 'badge bg-warning text-dark',
+            self::STATUS_BLOCKED => 'badge bg-secondary',
+            default => 'badge bg-danger',
+        };
+    }
+
+    public function isCompleted(): bool
+    {
+        return $this->status === self::STATUS_DONE;
+    }
+
+    public function isOverdue(): bool
+    {
+        if ($this->isCompleted() || !$this->due_date) {
+            return false;
+        }
+
+        return strtotime($this->due_date) < strtotime('today');
     }
 }

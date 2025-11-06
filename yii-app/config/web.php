@@ -6,6 +6,8 @@ return [
     'id' => 'eco-manager-portal',
     'basePath' => dirname(__DIR__),
     'bootstrap' => ['log'],
+    'language' => 'ru-RU',
+    'sourceLanguage' => 'en-US',
     'aliases' => [
         '@bower' => '@vendor/bower-asset',
         '@npm' => '@vendor/npm-asset',
@@ -55,6 +57,12 @@ return [
             'appendTimestamp' => true,
             'basePath' => '@app/web/assets',
             'baseUrl' => '@web/assets',
+        ],
+        'formatter' => [
+            'locale' => 'ru-RU',
+            'defaultTimeZone' => 'Europe/Moscow',
+            'dateFormat' => 'php:d F Y',
+            'datetimeFormat' => 'php:d F Y H:i',
         ],
     ],
     'modules' => [],

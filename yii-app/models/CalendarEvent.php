@@ -5,6 +5,10 @@ use yii\db\ActiveRecord;
 
 class CalendarEvent extends ActiveRecord
 {
+    public const STATUS_SCHEDULED = 'scheduled';
+    public const STATUS_DONE = 'done';
+    public const STATUS_OVERDUE = 'overdue';
+
     public static function tableName(): string
     {
         return '{{%calendar_event}}';
@@ -30,5 +34,19 @@ class CalendarEvent extends ActiveRecord
     public function getRequirement()
     {
         return $this->hasOne(Requirement::class, ['id' => 'requirement_id']);
+    }
+
+    public static function statusLabels(): array
+    {
+        return [
+            self::STATUS_SCHEDULED => 'Запланировано',
+            self::STATUS_DONE => 'Выполнено',
+            self::STATUS_OVERDUE => 'Просрочено',
+        ];
+    }
+
+    public function getStatusLabel(): string
+    {
+        return self::statusLabels()[$this->status] ?? $this->status;
     }
 }

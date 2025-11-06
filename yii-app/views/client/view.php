@@ -5,18 +5,20 @@ use yii\helpers\Html;
 /* @var $this yii\web\View */
 /* @var $client app\models\Client */
 
-$this->title = $client->name;
+$this->title = 'Личный кабинет клиента';
 $this->params['breadcrumbs'][] = $this->title;
+$this->params['breadcrumbs'][] = $client->name;
 
-$requirements = $client->requirements;
+$allRequirements = $allRequirements ?? $client->requirements;
+$displayRequirements = $requirements ?? $allRequirements;
 $documents = $client->documents;
 $events = $client->calendarEvents;
 $risks = $client->risks;
 $contracts = $client->contracts;
 
 $activeRequirements = 0;
-foreach ($requirements as $requirement) {
-    if ($requirement->status !== 'done') {
+foreach ($allRequirements as $requirement) {
+    if (!$requirement->isCompleted()) {
         $activeRequirements++;
     }
 }
@@ -88,7 +90,9 @@ $tabs = [
         'label' => 'Карта требований',
         'content' => $this->render('_tab_requirements', [
             'client' => $client,
-            'requirements' => $requirements,
+            'requirements' => $displayRequirements,
+            'stats' => $requirementsStats ?? [],
+            'statusFilter' => $requirementStatusFilter ?? 'all',
         ]),
         'active' => true,
     ],
@@ -119,13 +123,26 @@ $tabs = [
 ];
 ?>
 
+<?php
+$lastUpdatedTs = null;
+foreach ($allRequirements as $requirement) {
+    foreach ($requirement->history as $history) {
+        $ts = strtotime($history->created_at);
+        if ($lastUpdatedTs === null || $ts > $lastUpdatedTs) {
+            $lastUpdatedTs = $ts;
+        }
+    }
+}
+$lastUpdatedText = $lastUpdatedTs ? Yii::$app->formatter->asDatetime($lastUpdatedTs, 'php:d F Y H:i') : Yii::$app->formatter->asDate('now');
+?>
+
 <div class="client-profile card shadow-soft mb-4">
     <div class="card-body d-flex flex-wrap justify-content-between align-items-start gap-3">
         <div>
             <span class="badge rounded-pill bg-soft-info text-info text-uppercase fw-semibold mb-2">Клиент</span>
             <h1 class="card-title mb-2"><?= Html::encode($client->name) ?></h1>
-            <p class="mb-1 text-muted">Регистрационный номер: <span class="text-dark fw-semibold"><?= Html::encode($client->registration_number) ?></span></p>
-            <p class="mb-0 text-muted">Категория: <span class="text-dark fw-semibold"><?= Html::encode($client->category) ?></span></p>
+            <p class="mb-1 text-muted">ИНН: <span class="text-dark fw-semibold"><?= Html::encode($client->registration_number) ?></span></p>
+            <p class="mb-0 text-muted small">Обновлено: <span class="text-dark"><?= Html::encode($lastUpdatedText) ?></span></p>
         </div>
         <div class="client-stats text-end">
             <div class="mini-stat">
@@ -133,10 +150,53 @@ $tabs = [
                 <span class="mini-stat-value"><?= count($client->sites) ?></span>
             </div>
             <div class="mini-stat">
-                <span class="mini-stat-label">Всего требований</span>
-                <span class="mini-stat-value"><?= count($requirements) ?></span>
+                <span class="mini-stat-label">Требования</span>
+                <span class="mini-stat-value"><?= count($allRequirements) ?></span>
+            </div>
+            <div class="d-flex gap-2 mt-3 justify-content-end">
+                <button class="btn btn-outline-secondary btn-sm" type="button"><i class="bi bi-cloud-upload me-1"></i>Загрузить CSV</button>
+                <button class="btn btn-outline-secondary btn-sm" type="button"><i class="bi bi-plus-circle me-1"></i>Импорт требований</button>
             </div>
         </div>
+    </div>
+</div>
+
+<div class="filter-panel card shadow-soft mb-4">
+    <div class="card-body">
+        <form class="row gy-2 gx-3 align-items-center">
+            <div class="col-sm-6 col-xl-3">
+                <label class="form-label text-muted mb-1">Категория НВОС</label>
+                <select class="form-select">
+                    <option selected>Все категории</option>
+                    <option>I</option>
+                    <option>II</option>
+                    <option>III</option>
+                </select>
+            </div>
+            <div class="col-sm-6 col-xl-3">
+                <label class="form-label text-muted mb-1">Аудит</label>
+                <select class="form-select">
+                    <option selected>Любой статус</option>
+                    <option>Без аудита</option>
+                    <option>Требует аудита</option>
+                </select>
+            </div>
+            <div class="col-sm-6 col-xl-3">
+                <label class="form-label text-muted mb-1">Период</label>
+                <select class="form-select">
+                    <option selected>Все периоды</option>
+                    <option><?= date('Y') ?></option>
+                    <option><?= date('Y') + 1 ?></option>
+                </select>
+            </div>
+            <div class="col-sm-6 col-xl-3">
+                <label class="form-label text-muted mb-1">Поиск по требованиям</label>
+                <div class="input-group">
+                    <input type="text" class="form-control" placeholder="Введите код или название">
+                    <button class="btn btn-primary" type="button"><i class="bi bi-search me-1"></i>Найти</button>
+                </div>
+            </div>
+        </form>
     </div>
 </div>
 
@@ -150,7 +210,9 @@ $tabs = [
                 <div>
                     <div class="summary-value"><?= Html::encode($card['value']) ?></div>
                     <div class="summary-label"><?= Html::encode($card['title']) ?></div>
-                    <p class="summary-hint mb-0"><?= Html::encode($card['description']) ?></p>
+                    <?php if (!empty($card['description'])): ?>
+                        <p class="summary-hint mb-0"><?= Html::encode($card['description']) ?></p>
+                    <?php endif; ?>
                 </div>
             </div>
         </div>

@@ -1,0 +1,1 @@
+{"version":1,"defects":[],"times":{"tests\\unit\\RequirementStatusUpdateTest::testUpdateToDoneClosesRiskAndCompletesEvents":0.069,"tests\\unit\\RequirementStatusUpdateTest::testUpdateToInProgressRestoresScheduling":0.002}}

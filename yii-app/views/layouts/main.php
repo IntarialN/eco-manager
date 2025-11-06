@@ -39,6 +39,9 @@ AppAsset::register($this);
     $menuItems = [];
     if (!Yii::$app->user->isGuest) {
         $menuItems[] = ['label' => 'Клиент', 'url' => ['/client/view', 'id' => $defaultClientId]];
+        if ($identity->role === \app\models\User::ROLE_ADMIN) {
+            $menuItems[] = ['label' => 'Пользователи', 'url' => ['/user/index']];
+        }
         $menuItems[] = '<li class="nav-item ms-lg-3">' .
             Html::tag('span', Html::encode($identity->username) . ' · ' . Html::encode($identity->getRoleLabel()), [
                 'class' => 'navbar-text text-white-50',

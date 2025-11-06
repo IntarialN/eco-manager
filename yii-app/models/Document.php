@@ -5,6 +5,10 @@ use yii\db\ActiveRecord;
 
 class Document extends ActiveRecord
 {
+    public const STATUS_PENDING = 'pending_review';
+    public const STATUS_APPROVED = 'approved';
+    public const STATUS_REJECTED = 'rejected';
+
     public static function tableName(): string
     {
         return '{{%document}}';
@@ -31,5 +35,19 @@ class Document extends ActiveRecord
     public function getRequirement()
     {
         return $this->hasOne(Requirement::class, ['id' => 'requirement_id']);
+    }
+
+    public static function statusLabels(): array
+    {
+        return [
+            self::STATUS_PENDING => 'На проверке',
+            self::STATUS_APPROVED => 'Подтверждён',
+            self::STATUS_REJECTED => 'Отклонён',
+        ];
+    }
+
+    public function getStatusLabel(): string
+    {
+        return self::statusLabels()[$this->status] ?? $this->status;
     }
 }
