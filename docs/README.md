@@ -8,5 +8,6 @@
 - `documentation-todo.md` — сводная таблица открытых вопросов и TODO по всем документам.
 - `development-readiness.md` — аудит готовности документации к старту разработки.
 - `architecture/adr/` — решения по стеку и инфраструктуре (ADR 0001, ADR 0002).
+- `project-git-workflow.md` — принятый git-процесс (main, develop, feature, release, hotfix).
 
 При появлении новых файлов или подпроектов обязательно обновляем этот индекс.
