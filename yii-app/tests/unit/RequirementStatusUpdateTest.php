@@ -10,7 +10,7 @@ use app\models\RequirementHistory;
 use app\models\Risk;
 use Yii;
 
-final class RequirementStatusUpdateTest extends RequirementControllerTestCase
+final class RequirementStatusUpdateTest extends ControllerTestCase
 {
     public function testUpdateToDoneClosesRiskAndCompletesEvents(): void
     {
@@ -81,15 +81,11 @@ final class RequirementStatusUpdateTest extends RequirementControllerTestCase
 
     private function performStatusUpdate(string $status, string $comment): void
     {
-        $_POST = [
+        $post = [
             'id' => 1,
             'status' => $status,
             'comment' => $comment,
         ];
-        $_SERVER['REQUEST_METHOD'] = 'POST';
-        Yii::$app->request->setBodyParams($_POST);
-
-        $controller = $this->createController();
-        $controller->runAction('update-status');
+        $this->runControllerAction('requirement', 'update-status', [], $post);
     }
 }

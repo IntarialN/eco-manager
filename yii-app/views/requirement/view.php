@@ -2,6 +2,7 @@
 
 use app\models\Requirement;
 use yii\helpers\Html;
+use yii\helpers\Json;
 use yii\helpers\Url;
 
 /** @var yii\web\View $this */
@@ -116,7 +117,22 @@ $this->params['breadcrumbs'][] = $this->title;
             <div class="card-body">
         <h2 class="h6 fw-semibold mb-3">Связанные документы</h2>
         <?php if ($canManage): ?>
-            <?= Html::beginForm(['requirement/upload-document', 'id' => $requirement->id], 'post', ['enctype' => 'multipart/form-data', 'class' => 'mb-3']) ?>
+            <?php
+                $allowedExtensions = ['pdf', 'doc', 'docx', 'xls', 'xlsx', 'png', 'jpg'];
+                $allowedExtensionsUpper = strtoupper(implode(', ', $allowedExtensions));
+                $maxUploadSizeMb = 10;
+                $acceptAttribute = '.' . implode(',.', $allowedExtensions);
+            ?>
+            <?= Html::beginForm(
+                ['requirement/upload-document', 'id' => $requirement->id],
+                'post',
+                [
+                    'enctype' => 'multipart/form-data',
+                    'class' => 'mb-3',
+                    'id' => 'document-upload-form',
+                    'novalidate' => true,
+                ]
+            ) ?>
                 <div class="row g-2 align-items-end">
                     <div class="col-12">
                         <label class="form-label small text-muted">Название документа</label>
@@ -128,13 +144,96 @@ $this->params['breadcrumbs'][] = $this->title;
                     </div>
                     <div class="col-6">
                         <label class="form-label small text-muted">Файл</label>
-                        <?= Html::fileInput('DynamicModel[file]', null, ['class' => 'form-control']) ?>
+                        <?= Html::fileInput('DynamicModel[file]', null, [
+                            'class' => 'form-control',
+                            'id' => 'document-upload-file',
+                            'accept' => $acceptAttribute,
+                        ]) ?>
+                        <div class="form-text small text-muted">
+                            Допустимые форматы: <?= Html::encode($allowedExtensionsUpper) ?>, размер до <?= $maxUploadSizeMb ?> МБ.
+                        </div>
+                        <div class="invalid-feedback d-block small mt-1" data-role="upload-error" style="display:none;"></div>
                     </div>
                     <div class="col-12 text-end">
-                        <?= Html::submitButton('Загрузить', ['class' => 'btn btn-outline-primary btn-sm']) ?>
+                        <?= Html::submitButton('Загрузить', [
+                            'class' => 'btn btn-outline-primary btn-sm',
+                            'data-role' => 'upload-submit',
+                        ]) ?>
                     </div>
                 </div>
             <?= Html::endForm() ?>
+            <?php
+                $uploadValidationConfig = [
+                    'maxSizeBytes' => $maxUploadSizeMb * 1024 * 1024,
+                    'allowedExtensions' => $allowedExtensions,
+                    'messages' => [
+                        'required' => 'Выберите файл для загрузки.',
+                        'extension' => 'Недопустимый формат файла. Разрешены: ' . $allowedExtensionsUpper . '.',
+                        'size' => 'Файл превышает допустимый размер ' . $maxUploadSizeMb . ' МБ.',
+                    ],
+                ];
+                $this->registerJs(
+                    '(() => {
+                        const config = ' . Json::encode($uploadValidationConfig) . ';
+                        const form = document.getElementById(\'document-upload-form\');
+                        if (!form) { return; }
+                        const fileInput = document.getElementById(\'document-upload-file\');
+                        const submitBtn = form.querySelector(\'[data-role="upload-submit"]\');
+                        const errorBox = form.querySelector(\'[data-role="upload-error"]\');
+
+                        const setError = (message) => {
+                            if (!errorBox) { return; }
+                            errorBox.textContent = message;
+                            errorBox.style.display = \'block\';
+                            fileInput?.classList.add(\'is-invalid\');
+                            submitBtn?.setAttribute(\'disabled\', \'disabled\');
+                        };
+
+                        const clearError = () => {
+                            if (!errorBox) { return; }
+                            errorBox.textContent = \'\';
+                            errorBox.style.display = \'none\';
+                            fileInput?.classList.remove(\'is-invalid\');
+                            submitBtn?.removeAttribute(\'disabled\');
+                        };
+
+                        const validate = (isSubmit = false) => {
+                            if (!fileInput) { return true; }
+                            const file = fileInput.files?.[0];
+                            if (!file) {
+                                if (isSubmit) {
+                                    setError(config.messages.required);
+                                } else {
+                                    clearError();
+                                }
+                                return !isSubmit;
+                            }
+
+                            const extension = file.name.split(\'.\').pop()?.toLowerCase() ?? \'\';
+                            if (!config.allowedExtensions.includes(extension)) {
+                                setError(config.messages.extension);
+                                return false;
+                            }
+
+                            if (file.size > config.maxSizeBytes) {
+                                setError(config.messages.size);
+                                return false;
+                            }
+
+                            clearError();
+                            return true;
+                        };
+
+                        fileInput?.addEventListener(\'change\', () => validate(false));
+                        form.addEventListener(\'submit\', (event) => {
+                            if (!validate(true)) {
+                                event.preventDefault();
+                                event.stopPropagation();
+                            }
+                        });
+                    })();'
+                );
+            ?>
         <?php endif; ?>
         <?php if ($requirement->documents): ?>
             <ul class="list-unstyled mb-0">
