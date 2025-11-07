@@ -15,6 +15,8 @@ use yii\web\IdentityInterface;
  * @property string $password_hash
  * @property string $auth_key
  * @property string|null $access_token
+ * @property string|null $email_confirm_token
+ * @property string|null $email_confirmed_at
  * @property bool $is_active
  * @property string|null $last_login_at
  * @property int $created_at
@@ -48,9 +50,10 @@ class User extends ActiveRecord implements IdentityInterface
             [['role'], 'string', 'max' => 64],
             [['auth_key'], 'string', 'max' => 32],
             [['access_token'], 'string', 'max' => 64],
+            [['email_confirm_token'], 'string', 'max' => 64],
             [['client_id'], 'integer'],
             [['is_active'], 'boolean'],
-            [['last_login_at'], 'safe'],
+            [['last_login_at', 'email_confirmed_at'], 'safe'],
             [['created_at', 'updated_at'], 'integer'],
         ];
     }
@@ -77,7 +80,13 @@ class User extends ActiveRecord implements IdentityInterface
 
     public static function findByUsername(string $username): ?self
     {
-        return static::findOne(['username' => $username, 'is_active' => true]);
+        return static::find()
+            ->where(['is_active' => true])
+            ->andWhere(['or',
+                ['username' => $username],
+                ['email' => $username],
+            ])
+            ->one();
     }
 
     public function getId(): int
@@ -167,6 +176,14 @@ class User extends ActiveRecord implements IdentityInterface
         ], true);
     }
 
+    public function canManageClients(): bool
+    {
+        return in_array($this->role, [
+            self::ROLE_ADMIN,
+            self::ROLE_CLIENT_MANAGER,
+        ], true);
+    }
+
     public function getRoleLabel(): string
     {
         return self::roleLabels()[$this->role] ?? $this->role;
@@ -183,5 +200,23 @@ class User extends ActiveRecord implements IdentityInterface
             self::ROLE_AUDITOR => 'Аудитор',
             self::ROLE_EXTERNAL_VIEWER => 'Внешний просмотр',
         ];
+    }
+
+    public function isEmailConfirmed(): bool
+    {
+        return $this->email_confirmed_at !== null;
+    }
+
+    public function generateEmailConfirmToken(): void
+    {
+        $this->email_confirm_token = Yii::$app->security->generateRandomString(64);
+    }
+
+    public function confirmEmail(): bool
+    {
+        $this->email_confirm_token = null;
+        $this->email_confirmed_at = date('Y-m-d H:i:s');
+        $this->is_active = true;
+        return $this->save(false, ['email_confirm_token', 'email_confirmed_at', 'is_active']);
     }
 }

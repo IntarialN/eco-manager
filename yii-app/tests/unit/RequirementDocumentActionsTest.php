@@ -7,7 +7,7 @@ namespace tests\unit;
 use app\models\Document;
 use Yii;
 
-final class RequirementDocumentActionsTest extends RequirementControllerTestCase
+final class RequirementDocumentActionsTest extends ControllerTestCase
 {
     public function testUploadDocumentCreatesPendingRecord(): void
     {
@@ -31,11 +31,7 @@ final class RequirementDocumentActionsTest extends RequirementControllerTestCase
             ],
         ];
 
-        $_POST = $post;
-        $_SERVER['REQUEST_METHOD'] = 'POST';
-        Yii::$app->request->setBodyParams($post);
-
-        $this->createController()->runAction('upload-document', ['id' => 1]);
+        $this->runControllerAction('requirement', 'upload-document', ['id' => 1], $post, $_FILES);
 
         $document = Document::find()->where(['requirement_id' => 1])->one();
         self::assertInstanceOf(Document::class, $document);
@@ -55,7 +51,7 @@ final class RequirementDocumentActionsTest extends RequirementControllerTestCase
     {
         $documentId = $this->createDocumentRecord(Document::STATUS_PENDING);
 
-        $this->createController()->runAction('approve-document', ['id' => $documentId]);
+        $this->runControllerAction('requirement', 'approve-document', ['id' => $documentId]);
 
         $document = Document::findOne($documentId);
         self::assertInstanceOf(Document::class, $document);
@@ -66,7 +62,7 @@ final class RequirementDocumentActionsTest extends RequirementControllerTestCase
     {
         $documentId = $this->createDocumentRecord(Document::STATUS_PENDING);
 
-        $this->createController()->runAction('reject-document', ['id' => $documentId]);
+        $this->runControllerAction('requirement', 'reject-document', ['id' => $documentId]);
 
         $document = Document::findOne($documentId);
         self::assertInstanceOf(Document::class, $document);

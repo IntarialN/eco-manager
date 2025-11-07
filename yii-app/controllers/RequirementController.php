@@ -23,6 +23,11 @@ class RequirementController extends Controller
                 'class' => AccessControl::class,
                 'rules' => [
                     [
+                        'actions' => ['view'],
+                        'allow' => true,
+                        'roles' => ['@'],
+                    ],
+                    [
                         'allow' => true,
                         'roles' => ['@'],
                         'matchCallback' => function () {

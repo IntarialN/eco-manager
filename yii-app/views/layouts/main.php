@@ -33,12 +33,11 @@ AppAsset::register($this);
         ],
     ]);
     $identity = Yii::$app->user->identity;
-    $defaultClientId = ($identity instanceof \app\models\User && $identity->getDefaultClientId() !== null)
-        ? (int)$identity->getDefaultClientId()
-        : 1;
     $menuItems = [];
     if (!Yii::$app->user->isGuest) {
-        $menuItems[] = ['label' => 'Клиент', 'url' => ['/client/view', 'id' => $defaultClientId]];
+        if ($identity instanceof \app\models\User && $identity->canManageClients()) {
+            $menuItems[] = ['label' => 'Добавить клиента', 'url' => ['/client/onboard']];
+        }
         if ($identity->role === \app\models\User::ROLE_ADMIN) {
             $menuItems[] = ['label' => 'Пользователи', 'url' => ['/user/index']];
         }
@@ -65,11 +64,6 @@ AppAsset::register($this);
 
     <main class="main-content<?= $isLoginPage ? ' main-content--centered' : '' ?>">
         <div class="container<?= $isLoginPage ? ' login-container' : ' mt-4' ?>">
-            <?php if (!$isLoginPage): ?>
-                <?= Breadcrumbs::widget([
-                    'links' => $this->params['breadcrumbs'] ?? [],
-                ]) ?>
-            <?php endif; ?>
             <?= $content ?>
         </div>
     </main>

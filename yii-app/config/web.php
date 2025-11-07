@@ -49,8 +49,14 @@ return [
             'enablePrettyUrl' => true,
             'showScriptName' => false,
             'rules' => [
-                '' => 'client/view',
+                '' => 'client/select',
+                'client/select' => 'client/select',
+                'client/onboard' => 'client/onboard',
+                'client/onboard-self' => 'client/onboard-self',
+                'client/manager-list' => 'client/manager-list',
+                'client/suggest-company' => 'client/suggest-company',
                 'client/<id:\d+>' => 'client/view',
+                'site/<action:\w+>' => 'site/<action>',
             ],
         ],
         'assetManager' => [
@@ -63,6 +69,12 @@ return [
             'defaultTimeZone' => 'Europe/Moscow',
             'dateFormat' => 'php:d F Y',
             'datetimeFormat' => 'php:d F Y H:i',
+        ],
+        'notificationService' => [
+            'class' => app\components\NotificationService::class,
+        ],
+        'requirementBuilder' => [
+            'class' => app\components\RequirementBuilderService::class,
         ],
     ],
     'modules' => [],

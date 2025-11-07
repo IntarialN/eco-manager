@@ -17,7 +17,8 @@ class LoginForm extends Model
     {
         return [
             [['username', 'password'], 'required', 'message' => 'Поле «{attribute}» обязательно для заполнения.'],
-            ['username', 'match', 'pattern' => '/^[A-Za-z0-9_.-]+$/u', 'message' => 'Логин может содержать только латинские буквы, цифры и символы ._-'],
+            ['username', 'trim'],
+            ['username', 'string', 'max' => 255],
             ['rememberMe', 'boolean'],
             ['password', 'validatePassword'],
         ];
@@ -26,7 +27,7 @@ class LoginForm extends Model
     public function attributeLabels(): array
     {
         return [
-            'username' => 'Логин',
+            'username' => 'Email или логин',
             'password' => 'Пароль',
             'rememberMe' => 'Запомнить меня',
         ];
