@@ -5,6 +5,11 @@ use yii\db\ActiveRecord;
 
 class Contract extends ActiveRecord
 {
+    public const STATUS_DRAFT = 'draft';
+    public const STATUS_ACTIVE = 'active';
+    public const STATUS_SUSPENDED = 'suspended';
+    public const STATUS_TERMINATED = 'terminated';
+
     public static function tableName(): string
     {
         return '{{%contract}}';
@@ -15,10 +20,11 @@ class Contract extends ActiveRecord
         return [
             [['client_id', 'number', 'title', 'status'], 'required'],
             [['client_id'], 'integer'],
-            [['signed_at', 'valid_until'], 'safe'],
+            [['signed_at', 'valid_until', 'valid_from'], 'safe'],
             [['amount'], 'number'],
-            [['status'], 'string', 'max' => 50],
-            [['number', 'title'], 'string', 'max' => 255],
+            [['status', 'currency'], 'string', 'max' => 50],
+            [['number', 'title', 'client_external_id', 'integration_id', 'integration_revision'], 'string', 'max' => 255],
+            [['integration_id'], 'unique'],
             [['client_id'], 'exist', 'targetClass' => Client::class, 'targetAttribute' => ['client_id' => 'id']],
         ];
     }

@@ -11,6 +11,7 @@ services:
     environment:
       - YII_ENV=dev
       - YII_DEBUG=1
+      - BUBBLE_API_BASE_URL=http://mock-bubble:4001/api
     depends_on:
       - db
 
@@ -30,6 +31,15 @@ services:
     restart: always
     ports:
       - "8081:8080"
+
+  mock-bubble:
+    build:
+      context: ./mock-bubble-api
+    environment:
+      API_KEY: ${BUBBLE_API_KEY:-demo-key}
+      PORT: 4001
+    ports:
+      - "4001:4001"
 
 volumes:
   postgres_data:

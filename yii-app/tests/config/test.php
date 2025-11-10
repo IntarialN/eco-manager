@@ -36,6 +36,9 @@ return [
         'requirementBuilder' => [
             'class' => app\components\RequirementBuilderService::class,
         ],
+        'chatService' => [
+            'class' => app\services\ChatService::class,
+        ],
     ],
     'params' => [
         'registration' => [

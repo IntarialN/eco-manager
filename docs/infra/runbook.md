@@ -43,6 +43,42 @@ php yii serve --docroot=@app/web --port=8080
 - Подключение RBAC/авторизации.
 - CI (GitHub Actions) для `composer install`, `php yii migrate`, статического анализа.
 
+## 7. Mock Bubble API и синхронизация биллинга
+1. Поднять mock-службу:
+```bash
+docker compose up -d mock-bubble
+```
+Mock доступен на `http://localhost:4001/api`, ключ `X-API-Key: demo-key`.
+2. Выполнить синхронизацию договоров/счетов/актов:
+```bash
+docker compose run --rm yii-app php yii billing/sync
+```
+Команда подтянет данные и обновит календарь/риски, а уведомления попадут в лог/почту (см. `params.php`).
+3. Для автоматизации добавить cron либо GitHub Actions, вызывающие `yii billing/sync`.
+
+## 8. Чат/обратный звонок (MVP)
+1. **Миграции.** После синка стоить запустить `make migrate` (или `docker compose run --rm yii-app php yii migrate`), чтобы применились таблицы `chat_session`, `chat_message`, `callback_request`, `user_telegram_identity`.
+2. **API проверки.**  
+   - Создать сессию:  
+     ```bash
+     curl -X POST http://localhost:8080/chat/session \
+       -H 'Content-Type: application/json' \
+       -d '{"external_contact":"demo@example.com","name":"Демонстрация","initial_message":"Нужна консультация"}'
+     ```
+   - Отправить сообщение/запросить звонок: `POST /chat/<id>/message`, `POST /chat/<id>/callback`. Ответ приходит в JSON, а уведомление — на почту `notifications.support`.
+3. **Мониторинг/логи.**
+   - Web: см. `runtime/logs/app.log`; события (`chat_callback`) помечены категорией `NotificationService::sendChatCallbackRequest`.
+   - БД: запрос `SELECT status, COUNT(*) FROM chat_session GROUP BY status;` показывает очередь обращений.
+   - Для prod добавить метрики: время первого ответа (`chat_session.first_reply_seconds`), кол-во открытых сессий, ошибки webhook (после подключения Telegram-бота). Черновик метрик зафиксирован в `docs/features/chat-support.md`.
+    - Пока используется polling (`GET /chat/<id>?since_id=...`) каждые ~5 секунд; после перевода на Centrifugo/WebSocket обновим этот пункт.
+4. **Telegram support-bot (планы).** Docker-сервис будет добавлен как `support-bot`; токен хранить в `.env` (`SUPPORT_BOT_TOKEN`), webhook на `/bot/support`. До его реализации операторы отвечают через админку/почту.
+5. **SLA.** По умолчанию контролируем: первый ответ ≤30 мин, обратный звонок ≤2 часа рабочего времени. При отклонении фиксировать запись в `chat_session` `status = pending_callback` и уведомлять менеджера.
+6. **Архивация неактивных чатов.** Раз в 15–30 минут запускаем
+   ```bash
+   docker compose run --rm yii-app php yii chat-maintenance/archive --timeout=30
+   ```
+   Команда переводит сессии без сообщений старше таймаута в статус `closed`. При новом сообщении чат автоматически активируется (status → `open`).
+
 ## Связанные документы и регламент обновлений
 
 - `docs/security/compliance.md` — требования по бэкапам, мониторингу и реагированию.

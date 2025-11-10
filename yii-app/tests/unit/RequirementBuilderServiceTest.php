@@ -26,7 +26,15 @@ final class RequirementBuilderServiceTest extends ControllerTestCase
         $form->hasWasteGeneration = true;
         $form->hasAirEmissions = true;
         $form->hasWaterUse = true;
-        $form->needsInstructionDocs = true;
+        $form->hasSurfaceWaterIntake = true;
+        $form->hazardous_waste_present = true;
+        $form->hazardous_substances_class = 'I';
+        $form->annual_emissions_tons = 12.5;
+        $form->annual_waste_kg = 750;
+        $form->livestock_byproducts = true;
+        $form->responsible_person_count = 2;
+        $form->responsible_person_trained = false;
+        $form->needsInstructionDocs = false;
 
         self::assertTrue($form->validate());
 
@@ -46,14 +54,13 @@ final class RequirementBuilderServiceTest extends ControllerTestCase
         $requirements = Requirement::find()->where(['client_id' => $client->id])->all();
         self::assertNotEmpty($requirements);
 
-        $hasWasteRequirement = false;
-        foreach ($requirements as $requirement) {
-            if ($requirement->code === 'REQ-WASTE-JOURNAL') {
-                $hasWasteRequirement = true;
-                break;
-            }
-        }
-        self::assertTrue($hasWasteRequirement);
+        $codes = array_map(static fn(Requirement $requirement) => $requirement->code, $requirements);
+        self::assertContains('REQ-01', $codes);
+        self::assertContains('REQ-03', $codes);
+        self::assertContains('REQ-11', $codes);
+        self::assertContains('REQ-WATER-02', $codes);
+        self::assertContains('REQ-TRAINING-RESP', $codes);
+        self::assertNotContains('REQ-20', $codes);
     }
 
     public function testOnboardAttachesExistingUser(): void
@@ -86,5 +93,31 @@ final class RequirementBuilderServiceTest extends ControllerTestCase
         self::assertNull($result['password']);
         self::assertSame($existingUser->id, $result['user']->id);
         self::assertSame($result['client']->id, $result['user']->client_id);
+    }
+
+    public function testInstructionRequirementTriggeredByManualFlag(): void
+    {
+        $form = new ClientIntakeForm();
+        $form->name = 'ООО Инструкции';
+        $form->registration_number = '5098765432';
+        $form->category = 'IV';
+        $form->site_name = 'Склад';
+        $form->site_address = 'г. Тула, ул. Индустриальная, 5';
+        $form->contact_name = 'Пётр Петров';
+        $form->contact_email = 'manual@example.com';
+        $form->hasWasteGeneration = false;
+        $form->hasAirEmissions = false;
+        $form->needsInstructionDocs = true;
+        $form->responsible_person_count = 0;
+
+        self::assertTrue($form->validate());
+
+        $result = Yii::$app->requirementBuilder->onboard($form);
+        $codes = Requirement::find()
+            ->select('code')
+            ->where(['client_id' => $result['client']->id])
+            ->column();
+
+        self::assertContains('REQ-11', $codes);
     }
 }

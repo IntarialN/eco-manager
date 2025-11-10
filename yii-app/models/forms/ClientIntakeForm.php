@@ -20,6 +20,8 @@ class ClientIntakeForm extends Model
     public string $contact_phone = '';
     public string $access_channels = '';
     public string $okved = '';
+    public ?float $annual_emissions_tons = null;
+    public ?float $annual_waste_kg = null;
     public string $emission_sources = '';
     public string $water_source = '';
     public string $well_license_number = '';
@@ -28,10 +30,16 @@ class ClientIntakeForm extends Model
     public ?int $existingUserId = null;
     public bool $hasAirEmissions = true;
     public bool $hasWasteGeneration = true;
+    public bool $hazardous_waste_present = false;
+    public string $hazardous_substances_class = '';
     public bool $hasWaterUse = false;
     public bool $hasSurfaceWaterIntake = false;
+    public bool $livestock_byproducts = false;
     public bool $needsInstructionDocs = false;
     public bool $needsTrainingProgram = false;
+    public bool $responsible_person_trained = true;
+    public int $responsible_person_count = 1;
+    public ?string $training_valid_until = null;
 
     private ?array $_managerOptions = null;
     private ?string $_selectedManagerLabel = null;
@@ -42,6 +50,7 @@ class ClientIntakeForm extends Model
             [['name', 'registration_number', 'category', 'site_name', 'contact_email', 'contact_name'], 'required'],
             [['name', 'registration_number', 'site_name', 'contact_name', 'contact_role', 'okved'], 'string', 'max' => 255],
             [['site_address', 'notes', 'access_channels', 'emission_sources', 'water_source', 'well_license_number'], 'string'],
+            [['annual_emissions_tons', 'annual_waste_kg'], 'number', 'min' => 0],
             [
                 'category',
                 'in',
@@ -58,10 +67,13 @@ class ClientIntakeForm extends Model
                 [
                     'hasAirEmissions',
                     'hasWasteGeneration',
+                    'hazardous_waste_present',
                     'hasWaterUse',
                     'hasSurfaceWaterIntake',
+                    'livestock_byproducts',
                     'needsInstructionDocs',
                     'needsTrainingProgram',
+                    'responsible_person_trained',
                 ],
                 'filter',
                 'filter' => static fn($value) => filter_var($value, FILTER_VALIDATE_BOOL),
@@ -85,6 +97,7 @@ class ClientIntakeForm extends Model
             ['contact_phone', 'string', 'max' => 32],
             ['contact_phone', 'match', 'pattern' => '/^[\d\+\-\s\(\)]*$/', 'message' => 'Укажите телефон в корректном формате.'],
             ['okved', 'string', 'max' => 255],
+            [['responsible_person_count'], 'integer', 'min' => 0, 'max' => 999],
             [
                 'emission_sources',
                 'in',
@@ -97,7 +110,14 @@ class ClientIntakeForm extends Model
                 'range' => array_keys($this->getWaterSourceOptions()),
                 'skipOnEmpty' => true,
             ],
+            [
+                'hazardous_substances_class',
+                'in',
+                'range' => array_keys($this->getHazardousClassOptions()),
+                'skipOnEmpty' => true,
+            ],
             ['well_license_valid_until', 'date', 'format' => 'php:Y-m-d', 'skipOnEmpty' => true],
+            ['training_valid_until', 'date', 'format' => 'php:Y-m-d', 'skipOnEmpty' => true],
         ];
     }
 
@@ -119,14 +139,22 @@ class ClientIntakeForm extends Model
             'manager_id' => 'Менеджер клиента',
             'hasAirEmissions' => 'Есть стационарные источники выбросов',
             'hasWasteGeneration' => 'Образуются отходы',
+            'hazardous_waste_present' => 'Есть опасные отходы (I–IV классы)',
+            'hazardous_substances_class' => 'Наличие веществ I–II класса',
             'hasWaterUse' => 'Есть лицензия на скважину',
             'hasSurfaceWaterIntake' => 'Забор поверхностных вод / сброс',
+            'livestock_byproducts' => 'Побочная продукция животноводства',
             'needsInstructionDocs' => 'Требуются инструкции и приказы',
             'needsTrainingProgram' => 'Нужно плановое обучение ответственных',
+            'annual_emissions_tons' => 'Годовой объём выбросов (т/год)',
+            'annual_waste_kg' => 'Годовое образование отходов (кг)',
             'emission_sources' => 'Тип источников выбросов',
             'water_source' => 'Источник водопользования',
             'well_license_number' => 'Номер лицензии на недра',
             'well_license_valid_until' => 'Срок лицензии (если есть)',
+            'responsible_person_trained' => 'Ответственные обучены',
+            'responsible_person_count' => 'Количество ответственных лиц',
+            'training_valid_until' => 'Удостоверение действительно до',
         ];
     }
 
@@ -157,6 +185,17 @@ class ClientIntakeForm extends Model
             'surface' => 'Поверхностные воды (река/озеро)',
             'mixed' => 'Комбинированный источник',
             'none' => 'Нет водопользования',
+        ];
+    }
+
+    public function getHazardousClassOptions(): array
+    {
+        return [
+            '' => 'Не указано',
+            'I' => 'I класс опасности',
+            'II' => 'II класс опасности',
+            'III' => 'III класс и ниже',
+            'none' => 'Нет веществ I–II классов',
         ];
     }
 

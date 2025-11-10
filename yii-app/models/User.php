@@ -124,6 +124,11 @@ class User extends ActiveRecord implements IdentityInterface
         return $this->hasMany(Client::class, ['id' => 'client_id'])->via('clientAssignments');
     }
 
+    public function getTelegramIdentity()
+    {
+        return $this->hasOne(UserTelegramIdentity::class, ['user_id' => 'id']);
+    }
+
     public function getAssignedClientIds(): array
     {
         if ($this->_assignedClientIds === null) {

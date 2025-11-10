@@ -17,6 +17,22 @@ return [
             ],
         ],
         'db' => $db,
+        'notificationService' => [
+            'class' => app\components\NotificationService::class,
+            'emails' => $params['notifications'],
+        ],
+        'bubbleApi' => [
+            'class' => app\components\BubbleApiClient::class,
+            'baseUrl' => $params['bubble']['baseUrl'],
+            'apiKey' => $params['bubble']['apiKey'],
+        ],
+        'billingSync' => [
+            'class' => app\services\BillingSyncService::class,
+            'clientMap' => $params['bubble']['clientMap'],
+        ],
+        'chatService' => [
+            'class' => app\services\ChatService::class,
+        ],
     ],
     'controllerMap' => [
         'migrate' => [

@@ -28,12 +28,22 @@ final class RequirementDocumentActionsTest extends ControllerTestCase
             'DynamicModel' => [
                 'title' => 'Акт проверки',
                 'type' => 'report',
+                'review_mode' => \app\models\Document::REVIEW_MODE_AUDIT,
             ],
         ];
 
         $this->runControllerAction('requirement', 'upload-document', ['id' => 1], $post, $_FILES);
 
-        $document = Document::find()->where(['requirement_id' => 1])->one();
+        $documents = Document::find()
+            ->where(['requirement_id' => 1])
+            ->asArray()
+            ->all();
+        fwrite(STDERR, print_r($documents, true));
+        fwrite(STDERR, "Flash error: " . (Yii::$app->session->getFlash('error', null, true) ?? 'none') . PHP_EOL);
+        $document = Document::find()
+            ->where(['requirement_id' => 1])
+            ->orderBy(['id' => SORT_DESC])
+            ->one();
         self::assertInstanceOf(Document::class, $document);
         self::assertSame(Document::STATUS_PENDING, $document->status);
         self::assertSame('Акт проверки', $document->title);
@@ -56,6 +66,8 @@ final class RequirementDocumentActionsTest extends ControllerTestCase
         $document = Document::findOne($documentId);
         self::assertInstanceOf(Document::class, $document);
         self::assertSame(Document::STATUS_APPROVED, $document->status);
+        self::assertSame(1, $document->auditor_id);
+        self::assertNotNull($document->audit_completed_at);
     }
 
     public function testRejectDocumentUpdatesStatus(): void
@@ -67,6 +79,47 @@ final class RequirementDocumentActionsTest extends ControllerTestCase
         $document = Document::findOne($documentId);
         self::assertInstanceOf(Document::class, $document);
         self::assertSame(Document::STATUS_REJECTED, $document->status);
+        self::assertSame(1, $document->auditor_id);
+        self::assertNotNull($document->audit_completed_at);
+    }
+
+    public function testUploadDocumentWithoutAuditAutoApproved(): void
+    {
+        $tempFile = tempnam(sys_get_temp_dir(), 'upload');
+        file_put_contents($tempFile, 'test');
+
+        $_FILES = [
+            'DynamicModel' => [
+                'name' => ['file' => 'journal.pdf'],
+                'type' => ['file' => 'application/pdf'],
+                'tmp_name' => ['file' => $tempFile],
+                'error' => ['file' => UPLOAD_ERR_OK],
+                'size' => ['file' => filesize($tempFile)],
+            ],
+        ];
+
+        $post = [
+            'DynamicModel' => [
+                'title' => 'Журнал',
+                'type' => 'journal',
+                'review_mode' => \app\models\Document::REVIEW_MODE_STORAGE,
+            ],
+        ];
+
+        $this->runControllerAction('requirement', 'upload-document', ['id' => 1], $post, $_FILES);
+
+        $document = Document::find()
+            ->where(['requirement_id' => 1])
+            ->orderBy(['id' => SORT_DESC])
+            ->one();
+        self::assertInstanceOf(Document::class, $document);
+        self::assertSame(Document::STATUS_APPROVED, $document->status);
+        self::assertSame(Document::REVIEW_MODE_STORAGE, $document->review_mode);
+        self::assertNull($document->auditor_id);
+
+        $storedPath = Yii::getAlias('@app/web/uploads') . DIRECTORY_SEPARATOR . basename($document->path);
+        self::assertFileExists($storedPath);
+        unlink($storedPath);
     }
 
     private function createDocumentRecord(string $status): int
@@ -77,6 +130,7 @@ final class RequirementDocumentActionsTest extends ControllerTestCase
             'title' => 'Документ',
             'type' => 'report',
             'status' => $status,
+            'review_mode' => Document::REVIEW_MODE_AUDIT,
             'path' => '/uploads/sample.pdf',
             'uploaded_at' => date('Y-m-d H:i:s'),
         ]);

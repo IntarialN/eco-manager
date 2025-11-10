@@ -2,6 +2,18 @@
 
 Документ фиксирует рабочие этапы по детализации и сопровождению документации MVP. Используем как чек-лист на время текущей сессии: каждый завершённый блок фиксируем в `docs/completed/` отдельной записью.
 
+## Матрица файлов по этапам
+
+| Этап | Основные файлы/папки | Цель |
+|------|---------------------|------|
+| Этап 0 — аудит входного контекста | `docs/README.md`, `docs/documentation-plan.md`, `docs/development-readiness.md`, `docs/documentation-todo.md`, `docs/completed/*.md` | Уточнить текущий статус, выявить пробелы, синхронизировать TODO. |
+| Этап 1 — функциональные блоки | `docs/features/*.md`, `docs/features/chat-support.md`, `yii-app/controllers/ClientController.php`, `yii-app/controllers/RequirementController.php`, `yii-app/controllers/ChatController.php`, `yii-app/services/ChatService.php`, `yii-app/views/client/*.php`, `yii-app/views/chat/*.php`, `yii-app/views/layouts/main.php`, `yii-app/web/css/site.css`, `yii-app/tests/unit/*Requirement*.php`, `yii-app/tests/unit/RiskActionPlanControllerTest.php` | Согласовать описание UX, API и тестов по каждому блоку (требования, документы, календарь, риски, договоры, чат/обратный звонок). |
+| Этап 2 — архитектура и интеграции | `docs/architecture/*.md`, `docs/architecture/adr/*.md`, `docs/architecture/diagrams/*.puml`, `docs/architecture/chat-realtime.md`, `services/risk-service-e2e/project.json`, `docker-compose.yml`, `package.json` | Поддерживать целевую архитектуру, диаграммы, планы интеграций (Bubble, уведомления, realtime). |
+| Этап 3 — требования/справочники/анкета | `docs/requirements/*.md`, `docs/admin/*.md`, `docs/client/*.md`, `yii-app/models/forms/ClientIntakeForm.php`, `yii-app/models/Document.php`, `yii-app/migrations/*` | Актуализировать правила авторасчёта, справочники НПА, роли и клиентские анкеты. |
+| Этап 4 — безопасность и инфраструктура | `docs/security/compliance.md`, `docs/infra/runbook.md`, `docs/project-git-workflow.md`, `yii-app/config/{web,console,db}.php`, `params.php`, `docker-compose.yml`, `composer.json`, `package.json` | Обновлять runbook, бэкапы, мониторинг, git-процессы и соответствие законодательству РФ. |
+| Этап 5 — правила для ИИ | `docs/assistant-guidelines.md`, `docs/documentation-plan.md`, `docs/documentation-structure.md` | Задаём инструкции ассистентам, перечень обязательных документов перед стартом и регламент фиксации изменений. |
+| Этап 6 — управление знаниями | `docs/documentation-todo.md`, `docs/completed/README.md`, `docs/completed/*.md` | Фиксируем прогресс, переносим TODO, поддерживаем целостную историю изменений. |
+
 ## Этап 0. Аудит входного контекста
 - Проанализировать все материалы в `docs/`, включая completed-лог, чтобы не дублировать уже выполненные задачи.
 - Свериться с `docs/documentation-plan.md`, `docs/documentation-todo.md`, `docs/development-readiness.md`.
@@ -22,6 +34,9 @@
   - Согласовать логику планов действий с `docs/admin/reference-management.md`.
 - **Договоры/Биллинг (`docs/features/contracts-billing.md`)**
   - Актуализировать статусы интеграции, ссылки на mock Bubble API и календарные события.
+- **Коммуникации и поддержка (`docs/features/chat-support.md`)**
+  - Сверять описание веб-виджета, операторского UI (`yii-app/views/chat/*.php`, `yii-app/views/layouts/main.php`, `yii-app/web/css/site.css`) и сервиса (`yii-app/services/ChatService.php`, `yii-app/controllers/ChatController.php`) с текущим кодом.
+  - Фиксировать переходы на realtime (`docs/architecture/chat-realtime.md`), cron-задачи (`ChatMaintenanceController`) и мониторинг/инструкции в runbook.
 - Для каждого подблока: если вносим изменения, готовим запись в `docs/completed/` с указанием затронутых файлов и причин правок.
 
 ## Этап 2. Архитектура и интеграции
@@ -53,8 +68,9 @@
   - Следить за актуальностью веток, шаблонов PR, защитой веток.
 
 ## Этап 5. Поведение ИИ и правила работы
+- Перед любым действием перечитывать `docs/documentation-plan.md`, `docs/documentation-structure.md`, `docs/documentation-todo.md` и последние записи в `docs/completed/`, чтобы не дублировать работу.
 - Проверять и при необходимости расширять `docs/assistant-guidelines.md` (новые ограничения, процессы утверждения, шаблоны ответов).
-- Уточнять, какие документы читать перед началом задачи: `documentation-plan`, `documentation-todo`, `completed/`.
+- Фиксировать для себя список обязательных источников по задаче (например, перед работой над требованиями — `docs/requirements/*.md`, перед чатом — `docs/features/chat-support.md` + runbook).
 - Напоминать себе:
   - Не переписывать историю — добавлять новые записи.
   - Обновлять `docs/README.md`, если появляются новые разделы.
@@ -70,7 +86,7 @@
   - Проверка чек-листов в конце каждого файла (галочки отражают реальное состояние).
 
 ## Напоминания по фиксации прогресса
-- Каждый этап или подэтап = отдельная запись в completed с перечислением изменённых файлов.
-- Если задача затрагивает несколько этапов, допускается одна запись, но со списком всех отработанных подпунктов.
-- При обновлении нескольких документов одной темой (например, интеграции) ссылаться на все затронутые файлы и коммиты.
-- После мёрджа изменений не забывать обновить completed-лог и при необходимости индекс `docs/README.md`.
+- Каждый этап или подэтап = отдельная запись в `docs/completed/` с перечислением изменённых файлов (код, документация, тесты) и ссылкой на ветку/коммит.
+- Если задача затрагивает несколько этапов, допускается одна запись, но обязательно перечисляем все подпункты и файлы, чтобы не терять контекст.
+- При обновлении нескольких документов одной темой (например, интеграции или чат) ссылаться на все затронутые файлы и отражать изменения в `docs/documentation-todo.md`.
+- После мёрджа изменений обновлять completed-лог, при необходимости индекс `docs/README.md`, и проверять, что TODO-таблица показывает актуальные статусы.

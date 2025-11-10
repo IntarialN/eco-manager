@@ -342,4 +342,9 @@ HTML;
             ],
         ];
     }
+
+    public function actionSuggestCompany(string $q = ''): array
+    {
+        throw new NotFoundHttpException();
+    }
 }

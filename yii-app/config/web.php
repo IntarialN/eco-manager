@@ -54,9 +54,18 @@ return [
                 'client/onboard' => 'client/onboard',
                 'client/onboard-self' => 'client/onboard-self',
                 'client/manager-list' => 'client/manager-list',
-                'client/suggest-company' => 'client/suggest-company',
                 'client/<id:\d+>' => 'client/view',
                 'site/<action:\w+>' => 'site/<action>',
+                'billing/webhook' => 'billing/webhook',
+                'chat/inbox' => 'chat/inbox',
+                'chat/thread/<id:\d+>' => 'chat/thread',
+                ['pattern' => 'chat/<id:\d+>/assign', 'route' => 'chat/assign', 'verb' => 'POST'],
+                ['pattern' => 'chat/<id:\d+>/reply', 'route' => 'chat/reply', 'verb' => 'POST'],
+                ['pattern' => 'chat/session', 'route' => 'chat/create', 'verb' => 'POST'],
+                ['pattern' => 'chat/<id:\d+>/message', 'route' => 'chat/message', 'verb' => 'POST'],
+                ['pattern' => 'chat/<id:\d+>/callback', 'route' => 'chat/callback', 'verb' => 'POST'],
+                ['pattern' => 'chat/<id:\d+>/stream', 'route' => 'chat/stream', 'verb' => 'GET'],
+                ['pattern' => 'chat/<id:\d+>', 'route' => 'chat/view', 'verb' => 'GET'],
             ],
         ],
         'assetManager' => [
@@ -72,9 +81,22 @@ return [
         ],
         'notificationService' => [
             'class' => app\components\NotificationService::class,
+            'emails' => $params['notifications'],
+        ],
+        'bubbleApi' => [
+            'class' => app\components\BubbleApiClient::class,
+            'baseUrl' => $params['bubble']['baseUrl'],
+            'apiKey' => $params['bubble']['apiKey'],
+        ],
+        'billingSync' => [
+            'class' => app\services\BillingSyncService::class,
+            'clientMap' => $params['bubble']['clientMap'],
         ],
         'requirementBuilder' => [
             'class' => app\components\RequirementBuilderService::class,
+        ],
+        'chatService' => [
+            'class' => app\services\ChatService::class,
         ],
     ],
     'modules' => [],

@@ -20,103 +20,183 @@ $this->title = 'Создать клиента и карту требований
                         Заполните ключевые атрибуты из анкеты — система автоматически создаст клиента, объект
                         и стартовый набор требований с дедлайнами.
                     </p>
+                    <div id="formErrors" class="alert alert-danger d-none"></div>
 
-                    <?php $form = ActiveForm::begin([
-                        'id' => 'client-intake-form',
-                        'enableClientValidation' => true,
-                    ]); ?>
+<?php $form = ActiveForm::begin([
+    'id' => 'client-intake-form',
+    'enableClientValidation' => true,
+    'options' => ['novalidate' => true],
+]); ?>
 
-                    <h2 class="h6 text-uppercase text-muted mt-4 mb-3">1. Данные юрлица и контакты</h2>
-                    <div class="row">
-                        <div class="col-md-6">
-                            <?= $form->field($model, 'name')->textInput(['maxlength' => true]) ?>
-                        </div>
-                        <div class="col-md-6">
-                            <?= $form->field($model, 'registration_number')->textInput(['maxlength' => true]) ?>
-                        </div>
-                    </div>
-                    <?= $form->field($model, 'okved')->textInput(['maxlength' => true]) ?>
-                    <?= $form->field($model, 'category')->dropDownList($model->getCategoryOptions(), ['prompt' => 'Выберите категорию']) ?>
+<div class="intake-stepper mb-4">
+    <ul class="nav nav-pills step-nav" id="intakeSteps" role="tablist">
+        <li class="nav-item" role="presentation">
+            <button class="nav-link active" id="step-company-tab" data-bs-toggle="pill" data-bs-target="#step-company" type="button" role="tab" aria-controls="step-company">
+                <span>1</span> Компания
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" id="step-site-tab" data-bs-toggle="pill" data-bs-target="#step-site" type="button" role="tab" aria-controls="step-site">
+                <span>2</span> Площадка
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" id="step-contacts-tab" data-bs-toggle="pill" data-bs-target="#step-contacts" type="button" role="tab" aria-controls="step-contacts">
+                <span>3</span> Контакты
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" id="step-eco-tab" data-bs-toggle="pill" data-bs-target="#step-eco" type="button" role="tab" aria-controls="step-eco">
+                <span>4</span> Экология
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" id="step-training-tab" data-bs-toggle="pill" data-bs-target="#step-training" type="button" role="tab" aria-controls="step-training">
+                <span>5</span> Ответственные
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" id="step-notes-tab" data-bs-toggle="pill" data-bs-target="#step-notes" type="button" role="tab" aria-controls="step-notes">
+                <span>6</span> Дополнительно
+            </button>
+        </li>
+    </ul>
+</div>
 
-                    <hr>
-                    <h2 class="h6 text-uppercase text-muted mt-4 mb-3">2. Площадка</h2>
-                    <?= $form->field($model, 'site_name')->textInput(['maxlength' => true]) ?>
-                    <?= $form->field($model, 'site_address')->textarea(['rows' => 2]) ?>
+<div class="tab-content" id="intakeStepsContent">
+    <div class="tab-pane fade show active" id="step-company" role="tabpanel" aria-labelledby="step-company-tab">
+        <h2 class="section-title">Данные юрлица</h2>
+        <div class="row">
+            <div class="col-md-6">
+                <?= $form->field($model, 'name')->textInput(['maxlength' => true]) ?>
+            </div>
+            <div class="col-md-6">
+                <?= $form->field($model, 'registration_number')->textInput(['maxlength' => true]) ?>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-6">
+                <?= $form->field($model, 'okved')->textInput(['maxlength' => true]) ?>
+            </div>
+            <div class="col-md-6">
+                <?= $form->field($model, 'category')->dropDownList($model->getCategoryOptions(), ['prompt' => 'Выберите категорию']) ?>
+            </div>
+        </div>
+    </div>
 
-                    <hr>
-                    <h2 class="h6 text-uppercase text-muted mt-4 mb-3">3. Контактные лица</h2>
-                    <div class="row">
-                        <div class="col-md-6">
-                            <?= $form->field($model, 'contact_name')->textInput(['maxlength' => true]) ?>
-                        </div>
-                        <div class="col-md-6">
-                            <?= $form->field($model, 'contact_email')->textInput(['maxlength' => true]) ?>
-                        </div>
-                    </div>
-                    <div class="row">
-                        <div class="col-md-6">
-                            <?= $form->field($model, 'contact_role')->textInput(['maxlength' => true]) ?>
-                        </div>
-                        <div class="col-md-6">
-                            <?= $form->field($model, 'contact_phone')->textInput(['maxlength' => true]) ?>
-                        </div>
-                    </div>
+    <div class="tab-pane fade" id="step-site" role="tabpanel" aria-labelledby="step-site-tab">
+        <h2 class="section-title">Площадка и адрес</h2>
+        <?= $form->field($model, 'site_name')->textInput(['maxlength' => true]) ?>
+        <?= $form->field($model, 'site_address')->textarea(['rows' => 2]) ?>
+    </div>
 
-                    <?= $form->field($model, 'access_channels')->textarea(['rows' => 2])->hint('Например: доступ к ПИК, email-адреса для уведомлений.') ?>
+    <div class="tab-pane fade" id="step-contacts" role="tabpanel" aria-labelledby="step-contacts-tab">
+        <h2 class="section-title">Контакты и доступы</h2>
+        <div class="row">
+            <div class="col-md-6">
+                <?= $form->field($model, 'contact_name')->textInput(['maxlength' => true]) ?>
+            </div>
+            <div class="col-md-6">
+                <?= $form->field($model, 'contact_email')->textInput(['maxlength' => true]) ?>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-6">
+                <?= $form->field($model, 'contact_role')->textInput(['maxlength' => true]) ?>
+            </div>
+            <div class="col-md-6">
+                <?= $form->field($model, 'contact_phone')->textInput(['maxlength' => true]) ?>
+            </div>
+        </div>
+        <?= $form->field($model, 'access_channels')->textarea(['rows' => 2])->hint('Например: доступ к ПИК, email-адреса для уведомлений.') ?>
 
-                    <?php if ($showManagerField ?? false): ?>
-                        <div class="mb-3">
-                            <label class="form-label">Менеджер клиента</label>
-                            <?= Html::hiddenInput($model->formName() . '[manager_id]', $model->manager_id, ['id' => 'manager-id']) ?>
-                            <div class="d-flex flex-wrap gap-2 align-items-center">
-                                <span id="manager-summary" class="<?= $model->manager_id ? '' : 'text-muted' ?>">
-                                    <?= $model->manager_id ? Html::encode($model->getSelectedManagerLabel()) : 'Не назначен' ?>
-                                </span>
-                                <button type="button" class="btn btn-outline-primary btn-sm" data-bs-toggle="modal" data-bs-target="#managerModal">
-                                    Выбрать менеджера
-                                </button>
-                                <button type="button" class="btn btn-outline-secondary btn-sm" id="manager-clear" <?= $model->manager_id ? '' : 'disabled' ?>>
-                                    Очистить
-                                </button>
-                            </div>
-                        </div>
-                    <?php endif; ?>
+        <?php if ($showManagerField ?? false): ?>
+            <div class="mb-3">
+                <label class="form-label">Менеджер клиента</label>
+                <?= Html::hiddenInput($model->formName() . '[manager_id]', $model->manager_id, ['id' => 'manager-id']) ?>
+                <div class="d-flex flex-wrap gap-2 align-items-center">
+                    <span id="manager-summary" class="<?= $model->manager_id ? '' : 'text-muted' ?>">
+                        <?= $model->manager_id ? Html::encode($model->getSelectedManagerLabel()) : 'Не назначен' ?>
+                    </span>
+                    <button type="button" class="btn btn-outline-primary btn-sm" data-bs-toggle="modal" data-bs-target="#managerModal">
+                        Выбрать менеджера
+                    </button>
+                    <button type="button" class="btn btn-outline-secondary btn-sm" id="manager-clear" <?= $model->manager_id ? '' : 'disabled' ?>>
+                        Очистить
+                    </button>
+                </div>
+            </div>
+        <?php endif; ?>
+    </div>
 
-                    <hr>
-                    <h2 class="h6 text-uppercase text-muted mt-4 mb-3">4. Экологические параметры</h2>
-                    <div class="row">
-                        <div class="col-md-6">
-                            <?= $form->field($model, 'hasAirEmissions')->checkbox() ?>
-                            <?= $form->field($model, 'hasWasteGeneration')->checkbox() ?>
-                            <?= $form->field($model, 'hasWaterUse')->checkbox() ?>
-                            <?= $form->field($model, 'emission_sources')->dropDownList($model->getEmissionSourceOptions(), ['prompt' => 'Выберите тип']) ?>
-                        </div>
-                        <div class="col-md-6">
-                            <?= $form->field($model, 'hasSurfaceWaterIntake')->checkbox() ?>
-                            <?= $form->field($model, 'needsInstructionDocs')->checkbox() ?>
-                            <?= $form->field($model, 'needsTrainingProgram')->checkbox() ?>
-                            <?= $form->field($model, 'water_source')->dropDownList($model->getWaterSourceOptions(), ['prompt' => 'Выберите источник']) ?>
-                        </div>
-                    </div>
+<div class="tab-pane fade" id="step-eco" role="tabpanel" aria-labelledby="step-eco-tab">
+        <h2 class="section-title">Экологические параметры</h2>
+        <div class="row">
+            <div class="col-md-6">
+                <?= $form->field($model, 'hasAirEmissions')->checkbox() ?>
+                <?= $form->field($model, 'hasWasteGeneration')->checkbox() ?>
+                <?= $form->field($model, 'hazardous_waste_present')->checkbox() ?>
+                <?= $form->field($model, 'livestock_byproducts')->checkbox() ?>
+            </div>
+            <div class="col-md-6">
+                <?= $form->field($model, 'annual_emissions_tons')->input('number', ['step' => '0.1', 'min' => 0])->hint('Суммарный объём выбросов за год, тонн/год.') ?>
+                <?= $form->field($model, 'annual_waste_kg')->input('number', ['step' => '0.1', 'min' => 0])->hint('Суммарное образование отходов за год, кг.') ?>
+                <?= $form->field($model, 'hazardous_substances_class')->dropDownList($model->getHazardousClassOptions(), ['prompt' => 'Не выбрано']) ?>
+                <?= $form->field($model, 'emission_sources')->dropDownList($model->getEmissionSourceOptions(), ['prompt' => 'Выберите тип']) ?>
+            </div>
+        </div>
 
-                    <div class="row">
-                        <div class="col-md-6">
-                            <?= $form->field($model, 'well_license_number')->textInput(['maxlength' => true]) ?>
-                        </div>
-                        <div class="col-md-6">
-                            <?= $form->field($model, 'well_license_valid_until')->input('date') ?>
-                        </div>
-                    </div>
+        <div class="row mt-3">
+            <div class="col-md-6">
+                <?= $form->field($model, 'hasWaterUse')->checkbox()->hint('Формирует требование на лицензию недропользования.') ?>
+                <?= $form->field($model, 'hasSurfaceWaterIntake')->checkbox()->hint('Создаёт требования по водозабору/сбросам.') ?>
+                <?= $form->field($model, 'water_source')->dropDownList($model->getWaterSourceOptions(), ['prompt' => 'Выберите источник']) ?>
+            </div>
+            <div class="col-md-6">
+                <?= $form->field($model, 'well_license_number')->textInput(['maxlength' => true]) ?>
+                <?= $form->field($model, 'well_license_valid_until')->input('date') ?>
+            </div>
+        </div>
+    </div>
 
-                    <hr>
-                    <h2 class="h6 text-uppercase text-muted mt-4 mb-3">5. Дополнительная информация</h2>
-                    <?= $form->field($model, 'notes')->textarea(['rows' => 3]) ?>
+<div class="tab-pane fade" id="step-training" role="tabpanel" aria-labelledby="step-training-tab">
+        <h2 class="section-title">Ответственные лица</h2>
+        <div class="row">
+            <div class="col-md-6">
+                <?= $form->field($model, 'responsible_person_count')->input('number', ['min' => 0, 'max' => 999]) ?>
+                <?= $form->field($model, 'responsible_person_trained')->checkbox() ?>
+                <?= $form->field($model, 'needsInstructionDocs')->checkbox()->hint('Принудительно включает требование по инструкциям (req_11).') ?>
+                <?= $form->field($model, 'needsTrainingProgram')->checkbox() ?>
+            </div>
+            <div class="col-md-6">
+                <?= $form->field($model, 'training_valid_until')->input('date')->hint('При истекающем сроке создаётся требование на обучение.') ?>
+            </div>
+        </div>
+    </div>
 
-                    <div class="d-flex justify-content-end">
-                        <?= Html::submitButton('Создать клиента', ['class' => 'btn btn-primary']) ?>
-                    </div>
+<div class="tab-pane fade" id="step-notes" role="tabpanel" aria-labelledby="step-notes-tab">
+        <h2 class="section-title">Дополнительные сведения</h2>
+        <?= $form->field($model, 'notes')->textarea(['rows' => 4])->hint('Например: история проверок, планы развития, пожелания к аналитике.') ?>
+    </div>
+</div>
 
-                    <?php ActiveForm::end(); ?>
+<div class="d-flex align-items-center justify-content-between step-controls mt-4">
+    <button type="button" class="btn btn-outline-secondary" id="stepPrev" disabled>
+        Назад
+    </button>
+    <div class="text-muted small">
+        Шаг <span id="stepIndex">1</span> из 6
+    </div>
+    <button type="button" class="btn btn-primary" id="stepNext">
+        Далее
+    </button>
+</div>
+
+<div class="text-end mt-4">
+    <?= Html::submitButton('Создать клиента', ['class' => 'btn btn-success', 'id' => 'submitButton', 'style' => 'display:none']) ?>
+</div>
+
+<?php ActiveForm::end(); ?>
                 </div>
             </div>
         </div>
@@ -285,3 +365,175 @@ $this->registerJs(<<<'JS'
 JS);
 ?>
 <?php endif; ?>
+
+<?php
+$this->registerJs(<<<'JS'
+(function() {
+    const stepButtons = Array.from(document.querySelectorAll('#intakeSteps button[data-bs-toggle="pill"]'));
+    const prevBtn = document.getElementById('stepPrev');
+    const nextBtn = document.getElementById('stepNext');
+    const stepIndexEl = document.getElementById('stepIndex');
+    const submitBtn = document.getElementById('submitButton');
+    const form = document.getElementById('client-intake-form');
+    const errorAlert = document.getElementById('formErrors');
+
+    if (!stepButtons.length || !window.bootstrap) {
+        if (submitBtn) {
+            submitBtn.style.display = '';
+        }
+        if (nextBtn) {
+            nextBtn.style.display = 'none';
+        }
+        return;
+    }
+
+    let currentIndex = stepButtons.findIndex((btn) => btn.classList.contains('active'));
+    if (currentIndex < 0) {
+        currentIndex = 0;
+    }
+    const total = stepButtons.length;
+    const stepButtonMap = new Map(stepButtons.map((btn) => {
+        const target = btn.getAttribute('data-bs-target');
+        return [target, btn];
+    }));
+
+    const updateControls = (index) => {
+        if (!stepIndexEl) {
+            return;
+        }
+        stepIndexEl.textContent = index + 1;
+        if (prevBtn) {
+            prevBtn.disabled = index === 0;
+        }
+        const isLast = index === total - 1;
+        if (nextBtn) {
+            nextBtn.style.display = isLast ? 'none' : '';
+        }
+        if (submitBtn) {
+            submitBtn.style.display = isLast ? '' : 'none';
+        }
+    };
+
+    const goTo = (index) => {
+        if (index < 0 || index >= total) {
+            return;
+        }
+        const target = stepButtons[index];
+        const tab = bootstrap.Tab.getOrCreateInstance(target);
+        tab.show();
+    };
+
+    stepButtons.forEach((button, idx) => {
+        button.addEventListener('shown.bs.tab', () => {
+            currentIndex = idx;
+            updateControls(idx);
+        });
+    });
+
+    if (prevBtn) {
+        prevBtn.addEventListener('click', () => goTo(currentIndex - 1));
+    }
+    if (nextBtn) {
+        nextBtn.addEventListener('click', () => goTo(currentIndex + 1));
+    }
+
+    const clearStepErrors = () => {
+        stepButtons.forEach((btn) => btn.classList.remove('has-error'));
+        if (errorAlert) {
+            errorAlert.classList.add('d-none');
+            errorAlert.innerHTML = '';
+        }
+    };
+
+    const markStepError = (paneId) => {
+        const key = `#${paneId}`;
+        const btn = stepButtonMap.get(key);
+        if (btn) {
+            btn.classList.add('has-error');
+        }
+    };
+
+    const showErrorSummary = (stepTitles) => {
+        if (!errorAlert) {
+            return;
+        }
+        const listItems = stepTitles.map((title) => `<li>${title}</li>`).join('');
+        errorAlert.innerHTML = `<strong>Проверьте обязательные поля:</strong><ul class="mb-0">${listItems}</ul>`;
+        errorAlert.classList.remove('d-none');
+    };
+
+    const scanExistingErrors = () => {
+        if (!form) { return; }
+        const invalidElements = form.querySelectorAll('.is-invalid');
+        const seen = new Set();
+        invalidElements.forEach((el) => {
+            const pane = el.closest('.tab-pane');
+            if (pane && !seen.has(pane.id)) {
+                seen.add(pane.id);
+                markStepError(pane.id);
+            }
+        });
+        if (invalidElements.length && errorAlert) {
+            const titles = Array.from(seen).map((paneId) => {
+                const btn = stepButtonMap.get(`#${paneId}`);
+                return btn ? btn.innerText.trim() : paneId;
+            });
+            errorAlert.classList.remove('d-none');
+            errorAlert.innerHTML = `<strong>Проверьте обязательные поля:</strong><ul class="mb-0">${titles.map((title) => `<li>${title}</li>`).join('')}</ul>`;
+        }
+    };
+
+    if (form) {
+        form.addEventListener('submit', (event) => {
+            clearStepErrors();
+            const invalidSteps = new Map();
+            const fields = form.querySelectorAll('input, select, textarea');
+            let firstInvalidField = null;
+
+            fields.forEach((field) => {
+                if (field.disabled || field.type === 'hidden') {
+                    return;
+                }
+                if (!field.closest('.tab-pane')) {
+                    return;
+                }
+                if (field.checkValidity()) {
+                    return;
+                }
+                const pane = field.closest('.tab-pane');
+                if (!pane) {
+                    return;
+                }
+                const button = stepButtonMap.get(`#${pane.id}`);
+                if (button) {
+                    button.classList.add('has-error');
+                    invalidSteps.set(pane.id, button.innerText.trim());
+                }
+                if (!firstInvalidField) {
+                    firstInvalidField = field;
+                }
+            });
+
+            if (invalidSteps.size > 0) {
+                event.preventDefault();
+                showErrorSummary(Array.from(invalidSteps.values()));
+                if (firstInvalidField) {
+                    firstInvalidField.focus();
+                    firstInvalidField.reportValidity();
+                }
+                const firstStepId = invalidSteps.keys().next().value;
+                const firstIndex = stepButtons.findIndex((btn) => btn.getAttribute('data-bs-target') === `#${firstStepId}`);
+                if (firstIndex >= 0 && firstIndex !== currentIndex) {
+                    goTo(firstIndex);
+                }
+            } else {
+                clearStepErrors();
+            }
+        });
+    }
+
+    updateControls(currentIndex);
+    scanExistingErrors();
+})();
+JS);
+?>
