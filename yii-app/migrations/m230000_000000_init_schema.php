@@ -1,5 +1,6 @@
 <?php
 use yii\db\Migration;
+use yii\db\Query;
 
 class m230000_000000_init_schema extends Migration
 {
@@ -67,6 +68,10 @@ class m230000_000000_init_schema extends Migration
             'type' => $this->string(50),
             'status' => $this->string(50)->notNull(),
             'due_date' => $this->date()->notNull(),
+            'start_date' => $this->date(),
+            'periodicity' => $this->string(32)->notNull()->defaultValue('once'),
+            'custom_interval_days' => $this->integer(),
+            'reminder_days' => $this->string(),
             'completed_at' => $this->date(),
             'created_at' => $this->dateTime(),
         ]);
@@ -159,10 +164,10 @@ class m230000_000000_init_schema extends Migration
             [1, null, 'Договор аренды контейнеров', 'contract', 'approved', '/uploads/container-contract.pdf', '2025-01-12 09:00:00'],
         ]);
 
-        $this->batchInsert('{{%calendar_event}}', ['client_id', 'requirement_id', 'title', 'type', 'status', 'due_date', 'created_at'], [
-            [1, 2, 'Сдать декларацию НВОС', 'report', 'scheduled', '2025-03-20', '2025-01-15 08:00:00'],
-            [1, 3, 'Обновить НООЛР', 'compliance', 'scheduled', '2025-05-15', '2025-01-15 08:05:00'],
-            [1, null, 'Проверка Росприроднадзора', 'inspection', 'planned', '2025-06-01', '2025-02-10 09:00:00'],
+        $this->batchInsert('{{%calendar_event}}', ['client_id', 'requirement_id', 'title', 'type', 'status', 'due_date', 'start_date', 'periodicity', 'custom_interval_days', 'created_at'], [
+            [1, 2, 'Сдать декларацию НВОС', 'report', 'scheduled', '2025-03-20', '2025-03-20', 'yearly', null, '2025-01-15 08:00:00'],
+            [1, 3, 'Обновить НООЛР', 'compliance', 'scheduled', '2025-05-15', '2025-05-15', 'yearly', null, '2025-01-15 08:05:00'],
+            [1, null, 'Проверка Росприроднадзора', 'inspection', 'planned', '2025-06-01', '2025-06-01', 'once', null, '2025-02-10 09:00:00'],
         ]);
 
         $this->batchInsert('{{%risk}}', ['client_id', 'requirement_id', 'title', 'description', 'severity', 'status', 'loss_min', 'loss_max', 'detected_at'], [
@@ -181,6 +186,18 @@ class m230000_000000_init_schema extends Migration
 
         $this->batchInsert('{{%act}}', ['contract_id', 'number', 'status', 'issued_at'], [
             [1, 'АКТ-001/25', 'signed', '2025-02-05'],
+        ]);
+
+        $this->refreshSequences([
+            '{{%client}}',
+            '{{%site}}',
+            '{{%requirement}}',
+            '{{%document}}',
+            '{{%calendar_event}}',
+            '{{%risk}}',
+            '{{%contract}}',
+            '{{%invoice}}',
+            '{{%act}}',
         ]);
     }
 
@@ -212,5 +229,22 @@ class m230000_000000_init_schema extends Migration
         $this->dropTable('{{%requirement}}');
         $this->dropTable('{{%site}}');
         $this->dropTable('{{%client}}');
+    }
+
+    private function refreshSequences(array $tables): void
+    {
+        if ($this->db->driverName !== 'pgsql') {
+            return;
+        }
+
+        foreach ($tables as $table) {
+            $schema = $this->db->schema->getTableSchema($table, true);
+            if (!$schema || !$schema->sequenceName) {
+                continue;
+            }
+            $maxId = (new Query())->from($table)->max('id');
+            $value = $maxId ? (int)$maxId : 0;
+            $this->db->createCommand("SELECT setval('{$schema->sequenceName}', :value)", [':value' => $value])->execute();
+        }
     }
 }

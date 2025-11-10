@@ -26,11 +26,23 @@ final class RequirementStatusUpdateTest extends ControllerTestCase
         self::assertSame('closed', $risk->status);
 
         $events = CalendarEvent::find()->where(['requirement_id' => 1])->orderBy('id')->all();
-        self::assertCount(2, $events);
-        foreach ($events as $event) {
-            self::assertSame(CalendarEvent::STATUS_DONE, $event->status);
-            self::assertNotNull($event->completed_at);
-        }
+        self::assertCount(3, $events);
+
+        $recurringEvent = $events[0];
+        $oneTimeEvent = $events[1];
+        $nextOccurrence = $events[2];
+
+        self::assertSame(CalendarEvent::STATUS_DONE, $recurringEvent->status);
+        self::assertSame('2000-01-01', $recurringEvent->due_date);
+        self::assertNotNull($recurringEvent->completed_at);
+
+        self::assertSame(CalendarEvent::STATUS_DONE, $oneTimeEvent->status);
+        self::assertSame('2099-01-01', $oneTimeEvent->due_date);
+        self::assertNotNull($oneTimeEvent->completed_at);
+
+        self::assertSame(CalendarEvent::STATUS_SCHEDULED, $nextOccurrence->status);
+        self::assertSame('2001-01-01', $nextOccurrence->due_date);
+        self::assertNull($nextOccurrence->completed_at);
 
         $history = RequirementHistory::find()->where(['requirement_id' => 1])->all();
         self::assertCount(1, $history);
@@ -57,15 +69,18 @@ final class RequirementStatusUpdateTest extends ControllerTestCase
         self::assertSame('mitigation', $risk->status);
 
         $events = CalendarEvent::find()->where(['requirement_id' => 1])->orderBy('id')->all();
-        self::assertCount(2, $events);
+        self::assertCount(3, $events);
 
-        $overdueEvent = $events[0];
-        $scheduledEvent = $events[1];
+        $completedRecurring = $events[0];
+        $completedOneTime = $events[1];
+        $scheduledNext = $events[2];
 
-        self::assertSame(CalendarEvent::STATUS_OVERDUE, $overdueEvent->status);
-        self::assertNull($overdueEvent->completed_at);
-        self::assertSame(CalendarEvent::STATUS_SCHEDULED, $scheduledEvent->status);
-        self::assertNull($scheduledEvent->completed_at);
+        self::assertSame(CalendarEvent::STATUS_DONE, $completedRecurring->status);
+        self::assertNotNull($completedRecurring->completed_at);
+        self::assertSame(CalendarEvent::STATUS_DONE, $completedOneTime->status);
+        self::assertNotNull($completedOneTime->completed_at);
+        self::assertSame(CalendarEvent::STATUS_SCHEDULED, $scheduledNext->status);
+        self::assertNull($scheduledNext->completed_at);
 
         $history = RequirementHistory::find()
             ->where(['requirement_id' => 1])
@@ -77,6 +92,27 @@ final class RequirementStatusUpdateTest extends ControllerTestCase
         self::assertSame(Requirement::STATUS_DONE, $history[0]->new_status);
         self::assertSame(Requirement::STATUS_DONE, $history[1]->old_status);
         self::assertSame(Requirement::STATUS_IN_PROGRESS, $history[1]->new_status);
+    }
+
+    public function testRecurringEventCreatesSubsequentOccurrences(): void
+    {
+        $this->performStatusUpdate(Requirement::STATUS_DONE, 'Cycle 1');
+
+        $eventsAfterFirstCycle = CalendarEvent::find()->where(['requirement_id' => 1])->orderBy('id')->all();
+        self::assertCount(3, $eventsAfterFirstCycle);
+        $nextEvent = $eventsAfterFirstCycle[2];
+        self::assertSame('2001-01-01', $nextEvent->due_date);
+        self::assertSame(CalendarEvent::STATUS_SCHEDULED, $nextEvent->status);
+
+        $this->performStatusUpdate(Requirement::STATUS_IN_PROGRESS, 'Reopen');
+        $this->performStatusUpdate(Requirement::STATUS_DONE, 'Cycle 2');
+
+        $eventsAfterSecondCycle = CalendarEvent::find()->where(['requirement_id' => 1])->orderBy('id')->all();
+        self::assertCount(4, $eventsAfterSecondCycle);
+        $latest = end($eventsAfterSecondCycle);
+        self::assertInstanceOf(CalendarEvent::class, $latest);
+        self::assertSame('2002-01-01', $latest->due_date);
+        self::assertSame(CalendarEvent::STATUS_SCHEDULED, $latest->status);
     }
 
     private function performStatusUpdate(string $status, string $comment): void

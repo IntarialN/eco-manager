@@ -60,7 +60,17 @@ class RiskController extends Controller
                 sprintf('Добавлена задача "%s"', $plan->task),
                 $userId
             );
-            $risk->refreshStatusFromPlans($userId, 'После добавления задачи');
+            $statusChanged = $risk->refreshStatusFromPlans($userId, 'После добавления задачи');
+            $this->notifyRisk($risk, 'plan_task_created', [
+                'task' => $plan->task,
+                'ownerId' => $plan->owner_id,
+                'dueDate' => $plan->due_date,
+            ]);
+            if ($statusChanged !== null) {
+                $this->notifyRisk($risk, 'risk_status_changed', [
+                    'newStatus' => $statusChanged,
+                ]);
+            }
             Yii::$app->session->setFlash('success', 'Задача добавлена в план действий.');
         } else {
             Yii::$app->session->setFlash('error', 'Не удалось добавить задачу: ' . implode(' ', $form->getFirstErrors()));
@@ -101,7 +111,17 @@ class RiskController extends Controller
                 ),
                 $userId
             );
-            $risk->refreshStatusFromPlans($userId, 'После обновления задачи');
+            $statusChanged = $risk->refreshStatusFromPlans($userId, 'После обновления задачи');
+            $this->notifyRisk($risk, 'plan_task_status_updated', [
+                'task' => $plan->task,
+                'oldStatus' => $oldStatus,
+                'newStatus' => $plan->status,
+            ]);
+            if ($statusChanged !== null) {
+                $this->notifyRisk($risk, 'risk_status_changed', [
+                    'newStatus' => $statusChanged,
+                ]);
+            }
             Yii::$app->session->setFlash('success', 'Статус задачи обновлён.');
         } else {
             Yii::$app->session->setFlash('error', 'Не удалось обновить статус задачи.');
@@ -142,5 +162,14 @@ class RiskController extends Controller
             ->orderBy(['username' => SORT_ASC])
             ->indexBy('id')
             ->column();
+    }
+
+    private function notifyRisk(Risk $risk, string $event, array $payload = []): void
+    {
+        if (Yii::$app->has('notificationService')) {
+            /** @var \app\components\NotificationService $notifier */
+            $notifier = Yii::$app->get('notificationService');
+            $notifier->sendRiskUpdate($risk, $event, $payload);
+        }
     }
 }

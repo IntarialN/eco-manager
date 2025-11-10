@@ -13,15 +13,19 @@
 | `risk-service` | `api-gateway`, `admin-console` | Расчёт и управление рисками | REST/JSON | Поддержка batch апдейтов |
 | `billing-service` | `api-gateway`, `calendar-service`, `risk-service` | Данные договоров/счётов, статусы | REST/JSON | Кэширование для снижения нагрузки |
 | `notification-service` | `api-gateway`, `calendar-service`, `risk-service` | Отправка уведомлений | REST + queue | Использование очереди для асинхронности |
+| `chat-service` | `api-gateway`, `support-bot`, `admin-console`, `chat-channel-gateway` | Сессии чата, сообщения, обратный звонок | REST/WebSocket | Авторизация через единую БД, см. `docs/features/chat-support.md` |
 
 ## 2. Обмен событиями
 
 - Используем RabbitMQ как основной брокер сообщений:
   - `requirement.created/updated`
   - `document.uploaded/approved`
-  - `calendar.event.overdue`
-  - `billing.invoice.overdue`
-  - `risk.status.changed`
+- `calendar.event.overdue`
+- `billing.invoice.overdue`
+- `risk.status.changed`
+- `chat.session.created`
+- `chat.message.sent`
+- `chat.callback.requested`
 - Формат сообщений — JSON (схемы храним в `libs/data-models/events`), идентификатор корреляции передаётся в заголовках.
 - Каждый сервис подписывается на релевантные события через отдельные очереди, снижая связанность.
 
@@ -38,10 +42,11 @@
 - **Формат**: см. приложение `docs/architecture/mock-bubble-api.md` (эндпоинты, DTO).
 - **Mock-сервис**: описан в `docs/architecture/mock-bubble-api.md`, используется до появления спецификации.
 
-### 3.2 Уведомления
+### 3.2 Уведомления и чат-бот
 
 - Email: SMTP или сервис (SendGrid/Mailgun). Требуется TLS, SPF/DKIM/DMARC. SLA доставки — ≤15 минут.
-- Чат-бот: Telegram API, авторизация по токену бота. Используется как второй канал с SLA ≤30 минут.
+- Чат-бот (поддержка и ответы на чат): Telegram API, авторизация по токену бота. Используется как второй канал с SLA ≤30 минут. Сообщения ходят через `chat-service`, что обеспечивает единую БД и логи.
+- Веб-чат: отдельный виджет, подключённый к `chat-channel-gateway` (WebSocket/SSE), который ретранслирует события из `chat-service`.
 - SMS/телефония (опционально) — аварийный канал, SLA ≤15 минут после эскалации.
 - Порядок отправки по умолчанию: email → чат-бот → SMS (если отметка «критичное»). Канал выбирается по настройкам пользователя; при отсутствии согласия на SMS используется только email/чат-бот.
 - fallback: при недоступности основного канала повторная отправка через следующий канал, результаты фиксируются в логах notification-service и в таблице `notification_attempts`.
@@ -50,6 +55,23 @@
   - `calendar.event.upcoming` — email.
   - `billing.invoice.overdue` — email + (опционально) SMS.
   - `risk.severity.high` — все доступные каналы.
+- `chat.callback.requested` — чат-бот (оператор) + email ответственному менеджеру.
+
+#### chat-channel-gateway (реалтайм слой)
+- Сервис:** NestJS/TypeScript**, развёрнут отдельно от Yii. Держит WebSocket/SSE соединения с клиентами и операторами.
+- Источники данных: RabbitMQ (`chat.message.sent`, `chat.session.updated`), Redis pub/sub для быстрой распределённой доставки.
+- Функции:
+  - Выдача короткоживущих channel-токенов (через REST `chat-service`).
+  - Retriable push событий в браузер/бот.
+  - Backpressure (лимиты на подключения, ping/pong).
+- Fallback: при недоступности gateway фронтенд переключается на REST polling (уже реализовано).
+- Детали см. `docs/architecture/chat-realtime.md`.
+
+#### Telegram поддержка (support-bot)
+- Хостим отдельный контейнер `support-bot` (Node.js/Python) — обмен с Telegram по webhook HTTPS.
+- Авторизация операторов через одноразовый токен (`/login <jwt>`), подтверждённые связи храним в `user_telegram_identity`.
+- Команды `/open`, `/close`, `/callback` вызывают REST `chat-service`.
+- Сообщения из Telegram подписываются на очередь `chat.message.operator` и доставляются веб-клиенту через WebSocket.
 
 ### 3.3 Хранилище документов
 
@@ -98,6 +120,9 @@
 - Согласовать приоритеты каналов уведомлений и размеры очередей.
 - Описать процессы отладки интеграций (sandbox окружения, тестовые ключи).
 - Систематизировать контроль версий контрактов (mock ↔ production) и фиксацию изменений в ADR/Completed.
+- Уточнить требования к телефонному провайдеру для обратного звонка (SIP/Asterisk/внешний API) и зафиксировать SLA.
+- Выбрать стек Telegram-бота, описать схему деплоя и секретов (Token, webhook URL).
+- Спроектировать схему шифрования и хранения истории чата (ретеншн, право на удаление).
 
 ## Чек-лист готовности
 

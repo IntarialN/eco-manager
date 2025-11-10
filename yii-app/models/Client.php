@@ -21,6 +21,21 @@ class Client extends ActiveRecord
         return [
             [['name', 'registration_number', 'category'], 'required'],
             [['description'], 'string'],
+            [['annual_emissions_tons', 'annual_waste_kg'], 'number'],
+            [['responsible_person_count'], 'integer'],
+            [
+                [
+                    'hazardous_waste_present',
+                    'has_well',
+                    'uses_surface_water',
+                    'livestock_byproducts',
+                    'responsible_person_trained',
+                    'instruction_docs_required',
+                ],
+                'boolean',
+            ],
+            [['training_valid_until'], 'date', 'format' => 'php:Y-m-d'],
+            [['hazardous_substances_class', 'water_source'], 'string', 'max' => 50],
             [['created_at', 'updated_at'], 'integer'],
             [['name', 'registration_number', 'category'], 'string', 'max' => 255],
             [['registration_number'], 'unique'],

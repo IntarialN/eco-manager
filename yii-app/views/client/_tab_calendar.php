@@ -23,7 +23,12 @@ use yii\helpers\Html;
                 };
                 ?>
                 <tr>
-                    <td><?= Html::encode($event->title) ?></td>
+                    <td>
+                        <?= Html::encode($event->title) ?>
+                        <?php if ($event->isRecurring()): ?>
+                            <div class="text-muted small">Повтор: <?= Html::encode($event->getPeriodicityLabel()) ?></div>
+                        <?php endif; ?>
+                    </td>
                     <td><?= Html::encode($event->type) ?></td>
                     <td><span class="badge <?= $statusCss ?> badge-status"><?= Html::encode($event->getStatusLabel()) ?></span></td>
                     <td><?= $event->due_date ? Yii::$app->formatter->asDate($event->due_date) : '—' ?></td>

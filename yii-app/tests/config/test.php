@@ -29,5 +29,24 @@ return [
         'security' => [
             'class' => yii\base\Security::class,
         ],
+        'mailer' => [
+            'class' => yii\symfonymailer\Mailer::class,
+            'useFileTransport' => true,
+        ],
+        'requirementBuilder' => [
+            'class' => app\components\RequirementBuilderService::class,
+        ],
+        'chatService' => [
+            'class' => app\services\ChatService::class,
+        ],
+    ],
+    'params' => [
+        'registration' => [
+            'allowedRoles' => [
+                \app\models\User::ROLE_CLIENT_USER,
+                \app\models\User::ROLE_CLIENT_MANAGER,
+            ],
+        ],
+        'supportEmail' => 'support@example.com',
     ],
 ];

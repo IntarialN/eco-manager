@@ -62,11 +62,6 @@ class Risk extends ActiveRecord
         ];
     }
 
-    public function getStatusLabel(): string
-    {
-        return self::statusLabels()[$this->status] ?? $this->status;
-    }
-
     public static function severityLabels(): array
     {
         return [
@@ -74,6 +69,11 @@ class Risk extends ActiveRecord
             'medium' => 'Средняя',
             'high' => 'Высокая',
         ];
+    }
+
+    public function getStatusLabel(): string
+    {
+        return self::statusLabels()[$this->status] ?? $this->status;
     }
 
     public function getSeverityLabel(): string
@@ -91,18 +91,14 @@ class Risk extends ActiveRecord
         };
     }
 
-    /**
-     * Пересчитывает статус риска на основании плана действий.
-     */
-    public function refreshStatusFromPlans(?int $userId = null, ?string $context = null): void
+    public function refreshStatusFromPlans(?int $userId = null, ?string $context = null): ?string
     {
-        $oldStatus = $this->status;
-
         $plans = $this->getActionPlans()->all();
         if (empty($plans)) {
-            return;
+            return null;
         }
 
+        $oldStatus = $this->status;
         $allDone = true;
         $hasActive = false;
 
@@ -113,14 +109,16 @@ class Risk extends ActiveRecord
             }
         }
 
+        $changedStatus = null;
         if ($allDone) {
             if ($this->status !== self::STATUS_CLOSED) {
                 $this->status = self::STATUS_CLOSED;
                 $this->resolved_at = date('Y-m-d');
                 $this->save(false, ['status', 'resolved_at']);
                 $this->logStatusChange($oldStatus, $userId, $context);
+                $changedStatus = $this->status;
             }
-            return;
+            return $changedStatus;
         }
 
         $targetStatus = $hasActive ? self::STATUS_MITIGATION : self::STATUS_OPEN;
@@ -131,7 +129,10 @@ class Risk extends ActiveRecord
             }
             $this->save(false, ['status', 'resolved_at']);
             $this->logStatusChange($oldStatus, $userId, $context);
+            $changedStatus = $this->status;
         }
+
+        return $changedStatus;
     }
 
     public function addLog(string $action, ?string $notes = null, ?int $userId = null): void

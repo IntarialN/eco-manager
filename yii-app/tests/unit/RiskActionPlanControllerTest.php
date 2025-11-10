@@ -32,6 +32,10 @@ final class RiskActionPlanControllerTest extends ControllerTestCase
         self::assertCount(2, $logsAfterCreate);
         self::assertSame('plan_task_created', $logsAfterCreate[0]->action);
         self::assertSame('risk_status_changed', $logsAfterCreate[1]->action);
+        $notifications = $this->getNotificationStub()->events;
+        self::assertCount(2, $notifications);
+        self::assertSame('plan_task_created', $notifications[0]['event']);
+        self::assertSame('risk_status_changed', $notifications[1]['event']);
 
         $this->runControllerAction('risk', 'update-plan-status', ['id' => $plan->id], [
             'status' => RiskActionPlan::STATUS_DONE,
@@ -48,5 +52,10 @@ final class RiskActionPlanControllerTest extends ControllerTestCase
         self::assertCount(4, $logs);
         self::assertSame('plan_task_status_updated', $logs[2]->action);
         self::assertSame('risk_status_changed', $logs[3]->action);
+
+        $notifications = $this->getNotificationStub()->events;
+        self::assertCount(4, $notifications);
+        self::assertSame('plan_task_status_updated', $notifications[2]['event']);
+        self::assertSame('risk_status_changed', $notifications[3]['event']);
     }
 }

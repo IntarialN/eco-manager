@@ -8,3 +8,4 @@ yii-app/web/assets/*
 !yii-app/web/assets/.gitignore
 yii-app/data/*.db
 yii-app/.env
+/mock-bubble-api/node_modules/
