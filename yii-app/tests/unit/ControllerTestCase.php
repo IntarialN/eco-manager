@@ -73,13 +73,6 @@ abstract class ControllerTestCase extends \PHPUnit\Framework\TestCase
         }
     }
 
-    protected function getNotificationStub(): NotificationServiceStub
-    {
-        /** @var NotificationServiceStub $service */
-        $service = Yii::$app->get('notificationService');
-        return $service;
-    }
-
     private function instantiateController(string $controllerId): Controller
     {
         return match ($controllerId) {
@@ -108,8 +101,6 @@ abstract class ControllerTestCase extends \PHPUnit\Framework\TestCase
         if (!is_dir($this->uploadDir)) {
             mkdir($this->uploadDir, 0775, true);
         }
-
-        Yii::$app->set('notificationService', new NotificationServiceStub());
     }
 
     private function createSchema(): void

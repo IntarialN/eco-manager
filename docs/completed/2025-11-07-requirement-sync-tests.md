@@ -8,7 +8,7 @@
 **Артефакты:**
 - `yii-app/composer.json`, `yii-app/composer.lock`
 - `yii-app/phpunit.xml`, `yii-app/tests/bootstrap.php`, `yii-app/tests/config/test.php`
-- `yii-app/tests/support/ArraySession.php`, `yii-app/tests/unit/RequirementStatusUpdateTest.php`
+- `yii-app/tests/support/ArraySession.php`, `yii-app/tests/unit/ControllerTestCase.php`, `yii-app/tests/unit/RequirementStatusUpdateTest.php`
 - `docs/documentation-todo.md`, `docs/features/requirements-tracker.md`, `docs/features/calendar.md`
 
 **Следующие шаги:** покрыть сценарии управления документами из карточки требования и план действий по рискам (см. строки TODO для блока документов и рисков).
