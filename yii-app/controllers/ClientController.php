@@ -40,7 +40,7 @@ class ClientController extends Controller
 
         $model = new ClientIntakeForm();
 
-        if ($model->load(Yii::$app->request->post()) && $model->validate()) {
+        if ($this->loadClientIntakeForm($model) && $model->validate()) {
             try {
                 /** @var \app\components\RequirementBuilderService $builder */
                 $builder = Yii::$app->get('requirementBuilder');
@@ -75,7 +75,7 @@ class ClientController extends Controller
         $model->contact_email = $identity->email;
         $model->contact_name = $identity->username ?? $identity->email;
 
-        if ($model->load(Yii::$app->request->post()) && $model->validate()) {
+        if ($this->loadClientIntakeForm($model) && $model->validate()) {
             try {
                 /** @var \app\components\RequirementBuilderService $builder */
                 $builder = Yii::$app->get('requirementBuilder');
@@ -290,6 +290,35 @@ HTML;
                 Yii::error(['message' => 'Failed to send admin onboarding email', 'error' => $e->getMessage()], __METHOD__);
             }
         }
+    }
+
+    private function loadClientIntakeForm(ClientIntakeForm $model): bool
+    {
+        $post = Yii::$app->request->post();
+        $formName = $model->formName();
+        if (isset($post[$formName])) {
+            foreach (['annual_emissions_tons', 'annual_waste_kg'] as $attribute) {
+                if (array_key_exists($attribute, $post[$formName])) {
+                    $post[$formName][$attribute] = $this->normalizeFloatInput($post[$formName][$attribute]);
+                }
+            }
+        }
+
+        return $model->load($post);
+    }
+
+    private function normalizeFloatInput($value): ?float
+    {
+        if ($value === null || $value === '') {
+            return null;
+        }
+
+        if (is_float($value)) {
+            return $value;
+        }
+
+        $normalized = str_replace(',', '.', (string)$value);
+        return is_numeric($normalized) ? (float)$normalized : null;
     }
 
     public function actionManagerList(string $q = '', int $page = 1): array

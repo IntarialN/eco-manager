@@ -14,7 +14,7 @@ return [
     ],
     'components' => [
         'request' => [
-            'cookieValidationKey' => 'replace-with-secret-key',
+            'cookieValidationKey' => getenv('APP_COOKIE_KEY') ?: 'uQ4P4Ywz2FcmkN7vS4l7u1c2Kx9PpDqT',
             'parsers' => [
                 'application/json' => yii\web\JsonParser::class,
             ],
@@ -72,6 +72,15 @@ return [
             'appendTimestamp' => true,
             'basePath' => '@app/web/assets',
             'baseUrl' => '@web/assets',
+        ],
+        'i18n' => [
+            'translations' => [
+                'yii/bootstrap5*' => [
+                    'class' => yii\i18n\PhpMessageSource::class,
+                    'sourceLanguage' => 'en-US',
+                    'basePath' => '@vendor/yiisoft/yii2-bootstrap5/messages',
+                ],
+            ],
         ],
         'formatter' => [
             'locale' => 'ru-RU',

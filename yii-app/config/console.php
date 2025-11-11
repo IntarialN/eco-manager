@@ -17,6 +17,15 @@ return [
             ],
         ],
         'db' => $db,
+        'i18n' => [
+            'translations' => [
+                'yii/bootstrap5*' => [
+                    'class' => yii\i18n\PhpMessageSource::class,
+                    'sourceLanguage' => 'en-US',
+                    'basePath' => '@vendor/yiisoft/yii2-bootstrap5/messages',
+                ],
+            ],
+        ],
         'notificationService' => [
             'class' => app\components\NotificationService::class,
             'emails' => $params['notifications'],

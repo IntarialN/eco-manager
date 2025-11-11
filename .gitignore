@@ -9,3 +9,4 @@ yii-app/web/assets/*
 yii-app/data/*.db
 yii-app/.env
 /mock-bubble-api/node_modules/
+/mock-bubble-api/node_modules/
